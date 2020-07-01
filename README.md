@@ -31,26 +31,27 @@ python tester.py
 Our resnet+Mano model in implemented in `model.py`.
 
 ## Data preprocessing
-Input images are assumed to be crops of fixed size around the hand. Using this command, we find the tightest rectangular box of edge size
+Input images are assumed to be crops of fixed size around the hand. Using this command, we **find the tightest rectangular box of edge size**
 l containing the hand. Images are then cropped with a square patch of size 2.2xl. Input images are located in `data/original` and cropped images are saved in `data/cropped`.
+
 ```
 python crop.py
 ```
-This command generates the 2D joint heat map images used as additional input to our network. You will need to build [PyOpenPose](https://github.com/FORTH-ModelBasedTracker/PyOpenPose). 
+This command **generates the 2D joint heat map images used as additional input to our network.** You will need to build [PyOpenPose](https://github.com/FORTH-ModelBasedTracker/PyOpenPose). 
 ```
 python heatmap.py
 ```
-This command generates hand image segmentations using 2D joint locations and GrabCut. 
+This command **generates hand image segmentations using 2D joint locations and GrabCut.** 
 ```
 python segment.py
-``` 
- 
+```
+
 ## Synthetic data creation
 This command colors registered meshes in `data/meshes_registered` using their colored corresponding unregistered meshes in `data/meshes_unregistered`. Results are saved in `data/meshes_colored`.         
 ```
 python create_colored_meshes.py
 ```
-Using mesh colour instances in `data/meshes_colored`, background images in `data/backgrounds`, and sampling global poses and geometries from MANO, this command creates synthetic image examples. 
+Using mesh colour instances in `data/meshes_colored`, background images in `data/backgrounds`, and sampling global poses and geometries from MANO, this command **creates synthetic image examples.** 
 ```
 python create_synthetic_data.py
 ```

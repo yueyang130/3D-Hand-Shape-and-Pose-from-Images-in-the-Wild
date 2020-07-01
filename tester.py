@@ -25,25 +25,29 @@ template.close()
 testloader = data.DataLoader(HandTestSet('data/cropped', img_transform=img_transform),
                             num_workers=0,batch_size=1, shuffle=False, pin_memory=False)
 
-model = torch.nn.DataParallel(resnet34_Mano(input_option=input_option))    
+model = torch.nn.DataParallel(resnet34_Mano(input_option=input_option), device_ids=[0])
 model.load_state_dict(torch.load('data/model-' + str(input_option) + '.pth'))
 model.eval()
 
 for i, data in enumerate(testloader, 0):
+    print("%d/%d"%(i, len(testloader)))
     images = data
     images = Variable(images.cuda())
-    out1, out2 = model(images)    
-    imgs = images[0].data        
+    out1, out2 = model(images)
+
+    imgs = images[0].data
+    imgs = imgs[:3, :, :].permute(1, 2, 0)
+    imgs = imgs.cpu().numpy()
 
     # Display 2D joints    
     u = np.zeros(21)   
-    v = np.zeros(21)   
+    v = np.zeros(21)
     for ii in xrange(21): 
         u[ii] = out1[0,2*ii]
         v[ii] = out1[0,2*ii+1]                           
     plt.plot(u, v, 'ro', markersize=5)      
     fig = plt.figure(1)
-    plt.imshow(imgs[:3,:,:].permute(1,2,0))
+    plt.imshow(imgs)
     plt.show()
 
     # Save 3D mesh
