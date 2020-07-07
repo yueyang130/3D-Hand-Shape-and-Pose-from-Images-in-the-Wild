@@ -15,7 +15,7 @@ op = OP.OpenPose((656, 368), (320, 320), (320,320), "COCO", OPENPOSE_ROOT + os.s
 
 for i in xrange(3):
     
-    rgb = cv2.imread('/media/hdd-0/hands/code/final/data/cropped/%d.png' %i)
+    rgb = cv2.imread('/data/cropped/%d.png' %i)
     rgb = cv2.flip(rgb,1)
 
     vec = np.array(handBB + [0, 0, 0, 0], dtype=np.int32).reshape((1, 8))       
@@ -34,7 +34,7 @@ for i in xrange(3):
  
         hm = np.concatenate((hm0,hm1,hm2),axis=2)     
  
-        misc.imsave('/media/hdd-0/hands/code/final/data/out/%d_%d.png' %(i,j),hm)    
+        misc.imsave('/data/out/%d_%d.png' %(i,j),hm)
 
 
 

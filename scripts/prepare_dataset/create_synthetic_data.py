@@ -1,29 +1,31 @@
-import sys
-sys.path.insert(0, "mano/")
-
 import pickle
 import random
 import numpy as np
 from opendr.renderer import ColoredRenderer
 from opendr.lighting import LambertianPointLight
 from opendr.camera import ProjectPoints
-from webuser.smpl_handpca_wrapper_HAND_only import load_model
+# please install manopth through https://github.com/hassony2/manopth
+from mano.webuser.smpl_handpca_wrapper_HAND_only import load_model
 import cv2
-
 import scipy.misc as misc
+import os
 
-
+from prepare_background import get_img_path_list
 
 # Please add fuction "change_col()" to ColoredRenderer class in file renderer.py in your opendr
 #class ColoredRenderer(BaseRenderer):  
 #    def change_col(self, color):
 #        self.vc = color
 
-
-
+# total number of synthetic image
+SYNTHETIC_NUM = 50
 # total number of bg images
-bg_number = 3
-m = load_model('mano/models/MANO_RIGHT.pkl', ncomps=6, flat_hand_mean=False)
+model_pth = '/home/lyf/yy_ws/code/manopth/manopth/mano/models/MANO_RIGHT.pkl'
+bg_pth    = 'data/backgrounds'
+ls = sorted(get_img_path_list(bg_pth))
+bg_number = len(ls)
+print('the total number of background images : %d'%(bg_number))
+m = load_model(model_pth, ncomps=6, flat_hand_mean=False)
 
 # load all colors 
 colors = []
@@ -48,8 +50,8 @@ colors = np.vstack(colors)
 joints = []
 gtruth = []
 
-for i in xrange(0,3):
-
+for i in xrange(0,SYNTHETIC_NUM):
+    # randomly sample beta and pose parameter of hand model
     m.betas[:] =  np.array([random.uniform(-1.,1.) for _ in xrange(10)]) * .03
     m.pose[:] = np.array([random.uniform(-1.,1.) for _ in xrange(9)]) * 2.
     m.pose[:3] = [np.pi, 0., 0.]
@@ -116,7 +118,7 @@ for i in xrange(0,3):
     rn.vc = LambertianPointLight(f=m.f, v=mesh, num_verts=len(m),light_pos=np.array([0,0,0]),vc=np.ones_like(m)*.9,light_color=np.array([1., 1., 1.]))
 
     mod = i % bg_number
-    bg = misc.imread('data/backgrounds/%d.png'%(mod))
+    bg = misc.imread(os.path.join(bg_pth ,'%d.png'%(mod)))
 
     rn.change_col(np.ones((778,3)))
 
@@ -132,6 +134,7 @@ for i in xrange(0,3):
     misc.imsave('data/out/%d.png'%i, image)
     # segmentation    
     misc.imsave('data/out/mask_%d.png'%i, mask*255)
+
 
     # joint locations
     joints.append(joint[:,:2].reshape((32)))

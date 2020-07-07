@@ -2,7 +2,7 @@
 Adnane Boukhayma, Rodrigo de Bem, Philip H.S. Torr, 
 [CVPR 2019 (Oral)](https://arxiv.org/abs/1902.03451)
 
-<img src="pipeline.png" height="200"/>
+<img src="docs/pipeline.png" height="200"/>
 
 ## PCK curves
 We provide scripts and data to plot 3D & 2D PCK curves in figures 4,5,6,7,8 of the paper in directory `PCK`. We use [gnuplot](http://www.gnuplot.info/) for plotting the figures. For example:
