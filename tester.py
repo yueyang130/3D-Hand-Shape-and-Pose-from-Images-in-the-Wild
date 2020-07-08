@@ -22,6 +22,7 @@ template = open('data/template.obj')
 content = template.readlines()
 template.close()
 
+# dataloader will load images as well as 2d joint heat maps
 testloader = data.DataLoader(HandTestSet('data/cropped', img_transform=img_transform),
                             num_workers=0,batch_size=1, shuffle=False, pin_memory=False)
 

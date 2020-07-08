@@ -25,7 +25,7 @@ def inside_polygon(x, y, points):
 
 edges = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],[0,17],[17,18],[18,19],[19,20]]
 
-fi = open('data/cropped/labels.pickle', 'rb')
+fi = open('../../data/cropped/labels.pickle', 'rb')
 anno = pickle.load(fi)
 fi.close()
 

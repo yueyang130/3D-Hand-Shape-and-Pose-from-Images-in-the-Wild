@@ -284,13 +284,14 @@ class DeconvBottleneck(nn.Module):
 
         return out
 
-class ResNet_Mano(nn.Module):
-
-    def __init__(self, block, layers, input_option, num_classes=1000):
-
+class _ResNet_Mano(nn.Module):
+    def __init__(self, pretrain, block, layers, input_option, num_classes=1000):
+        self.pretrain = pretrain
         self.input_option = input_option
         self.inplanes = 64
-        super(ResNet_Mano, self).__init__()
+        super(_ResNet_Mano, self).__init__()
+
+        # Resnet 34 as Encoder
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)       
         #if (self.input_option):        
         self.conv11 = nn.Conv2d(24, 64, kernel_size=7, stride=2, padding=3, bias=False)
@@ -305,6 +306,7 @@ class ResNet_Mano(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AvgPool2d(7)
 
+        # we adjust the final fully connected layer to output a vector v
         self.fc = nn.Linear(512 * block.expansion, num_classes)                        
         self.mean = Variable(torch.FloatTensor([545.,128.,128.,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0]).cuda())
         
@@ -316,6 +318,7 @@ class ResNet_Mano(nn.Module):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
+    # make layer1,2,3,4 for resnet 34
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
@@ -332,7 +335,6 @@ class ResNet_Mano(nn.Module):
             layers.append(block(self.inplanes, planes))
 
         return nn.Sequential(*layers)
-
 
     def forward(self, x):
        
@@ -353,16 +355,23 @@ class ResNet_Mano(nn.Module):
         x = x.view(x.size(0), -1) 
 
         xs = self.fc(x)
-        xs = xs + self.mean  
+        xs = xs + self.mean
 
+        # if pretrain the encoder, return param vector
+        if self.pretrain:
+            return xs
+
+        # hand and camera parameters
         scale = xs[:,0]
         trans = xs[:,1:3] 
         rot = xs[:,3:6]    
         theta = xs[:,6:12]
         beta = xs[:,12:] 
 
+        # get 3d mesh through pretrained MANO
         x3d = rot_pose_beta_to_mesh(rot,theta,beta)
-        
+
+        # 2D joints  including 21 keypoints
         x = trans.unsqueeze(1) + scale.unsqueeze(1).unsqueeze(2) * x3d[:,:,:2] 
         x = x.view(x.size(0),-1)      
               
@@ -371,9 +380,9 @@ class ResNet_Mano(nn.Module):
         
         return x, x3d
 
-def resnet34_Mano(pretrained=False,input_option=1, **kwargs):
+def resnet34_Mano(ispretrain,input_option=1, **kwargs):
     
-    model = ResNet_Mano(BasicBlock, [3, 4, 6, 3], input_option, **kwargs)    
+    model = _ResNet_Mano(ispretrain, BasicBlock, [3, 4, 6, 3], input_option, **kwargs)
     model.fc = nn.Linear(512 * 1, 22)
 
     return model

@@ -9,6 +9,7 @@ from mano.webuser.smpl_handpca_wrapper_HAND_only import load_model
 import cv2
 import scipy.misc as misc
 import os
+import shutil
 
 from prepare_background import get_img_path_list
 
@@ -22,6 +23,12 @@ SYNTHETIC_NUM = 50
 # total number of bg images
 model_pth = '/home/lyf/yy_ws/code/manopth/manopth/mano/models/MANO_RIGHT.pkl'
 bg_pth    = 'data/backgrounds'
+output_path = '/home/lyf2/dataset/3dhand/syn/'
+
+if not os.path.exists(output_path):
+    os.makedirs(output_path)
+shutil.rmtree(output_path)
+
 ls = sorted(get_img_path_list(bg_pth))
 bg_number = len(ls)
 print('the total number of background images : %d'%(bg_number))
@@ -131,9 +138,9 @@ for i in xrange(0,SYNTHETIC_NUM):
     image = (1-np.expand_dims(mask,2)) * bg + np.expand_dims(mask,2) * hand  
 
     # image
-    misc.imsave('data/out/%d.png'%i, image)
+    misc.imsave(os.path.join(output_path, '%d.png'%i), image)
     # segmentation    
-    misc.imsave('data/out/mask_%d.png'%i, mask*255)
+    #misc.imsave(os.path.join(output_path, 'mask_%d.png'%i), mask*255)
 
 
     # joint locations
@@ -141,11 +148,10 @@ for i in xrange(0,SYNTHETIC_NUM):
     # hand and view gt parameters
     gtruth.append(np.concatenate([np.array([1.,ss,tu,tv]),rot,m.pose[3:],m.betas],0))
 
-
-with open('data/out/labels.pickle','wb') as fo:
+with open(os.path.join(output_path, 'labels.pickle'),'wb') as fo:
     pickle.dump(joints,fo,protocol=pickle.HIGHEST_PROTOCOL) 
 
-with open('data/out/gt.pickle','wb') as fo:
+with open(os.path.join(output_path, 'gt.pickle'),'wb') as fo:
     pickle.dump(gtruth,fo,protocol=pickle.HIGHEST_PROTOCOL) 
 
 

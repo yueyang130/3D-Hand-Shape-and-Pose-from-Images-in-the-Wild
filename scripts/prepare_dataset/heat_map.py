@@ -3,6 +3,10 @@ import os
 import scipy.misc as misc
 import PyOpenPose as OP
 import cv2
+from prepare_background import get_img_path_list
+
+src_pth = '/home/lyf2/dataset/3dhand/syn/'
+dst_pth = '/home/lyf2/dataset/3dhand/syn/'
 
 OPENPOSE_ROOT = os.environ["OPENPOSE_ROOT"]
 ll = [[0,5,6],[7,8,9],[10,11,12],[17,18,19],[20,13,14],[15,16,1],[2,3,4]]
@@ -13,9 +17,11 @@ handBB = [0, 0, 320, 320]
 op = OP.OpenPose((656, 368), (320, 320), (320,320), "COCO", OPENPOSE_ROOT + os.sep + "models" + os.sep, 0,
                      download_heatmaps, OP.OpenPose.ScaleMode.ZeroToOne, with_face, with_hands)
 
-for i in xrange(3):
+count = len(get_img_path_list(src_pth))
+
+for i in xrange(count):
     
-    rgb = cv2.imread('/data/cropped/%d.png' %i)
+    rgb = cv2.imread(os.path.join(src_pth, '%d.png' %i))
     rgb = cv2.flip(rgb,1)
 
     vec = np.array(handBB + [0, 0, 0, 0], dtype=np.int32).reshape((1, 8))       
@@ -34,7 +40,7 @@ for i in xrange(3):
  
         hm = np.concatenate((hm0,hm1,hm2),axis=2)     
  
-        misc.imsave('/data/out/%d_%d.png' %(i,j),hm)
+        misc.imsave(os.path.join(src_pth, '%d_%d.png' %(i,j)),hm)
 
 
 

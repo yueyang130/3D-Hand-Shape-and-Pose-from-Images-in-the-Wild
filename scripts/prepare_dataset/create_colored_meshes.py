@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0, "mano/")
 import numpy as np
-from webuser.smpl_handpca_wrapper_HAND_only import load_model
+from mano.webuser.smpl_handpca_wrapper_HAND_only import load_model
 
 ids = [1,4,6,9,13,15,17,18,24,26,27,28,29,30,32,34,35,36,37,38,39,40,41,42,43,49,50]
 for ii, i in enumerate(ids):
