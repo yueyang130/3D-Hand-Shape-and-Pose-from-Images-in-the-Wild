@@ -22,6 +22,7 @@ gamma: 0.5                    # how much to decay learning rate
 pretrain_loss_fn: L1          # vector reconstruction loss fn [L1/L2]
 
 # data options
+num_workers: 0                              # number of data loading threads
 new_size: 256                               # first resize the shortest image side to this size
-data_root: /home/lyf/ws/datasets/StyleI2I/StyleI2I/animal_face2human_face/     # dataset folder location
+data_root:  /home/lyf2/dataset/3dhand/syn/crop_split            # dataset folder location
 output_pth: /home/lyf2/checkpoints/         # output path

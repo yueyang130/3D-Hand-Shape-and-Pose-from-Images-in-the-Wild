@@ -4,9 +4,8 @@ import argparse
 import torch.backends.cudnn as cudnn
 import os
 import tensorboardX
-import shutil
 import utils
-from torch.utils import data
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str,
@@ -31,7 +30,7 @@ trainloader, testloader = utils.get_data_loader(config, isPretrain=True)
 model_name = os.path.splitext(os.path.basename(opts.config))[0]
 model_dir = os.path.join(config['output_pth'], model_name)
 log_dir, checkpoint_dir, image_dir = utils.prepare_folder_strcutre(model_dir)
-train_writer = tensorboardX.SummaryWritter(log_dir)
+train_writer = tensorboardX.SummaryWriter(log_dir)
 
 # start train
 if opts.resume:

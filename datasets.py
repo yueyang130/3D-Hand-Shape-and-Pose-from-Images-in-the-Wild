@@ -10,9 +10,10 @@ import pickle
 
 def getItem(data_dir, index, img_transform):
     imgs = [img_transform(Image.open(os.path.join(data_dir, '%d.png' % index)).convert('RGB'))]
-    for i in xrange(7) :
-        imgs.append(
-            img_transform(Image.open(os.path.join(data_dir, '%d_%d.png' % (index, i))).convert('RGB')))
+    # TODO: comment the heatmap temporarily due to the uninstallation of pyOpenPose
+    # for i in xrange(7) :
+    #     imgs.append(
+    #         img_transform(Image.open(os.path.join(data_dir, '%d_%d.png' % (index, i))).convert('RGB')))
     imgs = torch.cat(imgs, dim=0)
     return imgs
 

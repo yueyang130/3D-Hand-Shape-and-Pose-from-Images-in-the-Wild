@@ -8,6 +8,9 @@ import time
 import yaml
 from torch.utils.data import DataLoader
 from datasets import HandPretrainSet, HandTrainSet
+import json
+import numpy as np
+import pickle
 
 def get_scheduler(optimizer, hyperparameters, iterations=-1):
     if 'lr_policy' not in hyperparameters or hyperparameters['lr_policy'] == 'constant':
@@ -42,7 +45,7 @@ def weights_init(init_type='gaussian'):
 
     return init_fun
 
-def get_param_recon_loss_fn(loss_type):
+def get_criterion(loss_type):
     if loss_type == 'L1':
         return nn.L1Loss('mean')
     elif loss_type == 'L2':
@@ -128,3 +131,29 @@ def write_loss(iterations, trainer, train_writer):
                if not callable(getattr(trainer, attr)) and not attr.startswith("__") and ('loss' in attr or 'grad' in attr or 'nwd' in attr)]
     for m in members:
         train_writer.add_scalar(m, getattr(trainer, m), iterations + 1)
+
+
+
+def parse_labelfile(label_mode, label_ext, label_pth, joint_keyname, n_image) :
+    joints = []
+    if label_mode :
+        if label_ext == '.json' :
+            for ii in range(n_image) :
+                with open(os.path.join(label_pth, str(ii) + '.json'), 'r') as fd :
+                    dat = json.load(fd)
+                    joint = np.array(dat[joint_keyname])
+                    joints.append(joint)
+        elif label_ext == '.mat' :
+            pass
+            # TODO
+        else :
+            assert 0, "Unsupported file type of label"
+    else :
+        if label_ext == '.pickle':
+            with open(label_pth, 'r') as fd :
+                joints = np.array(pickle.load(fd))
+        else :
+            assert 0, "Unsupported file type of label"
+
+
+    return joints

@@ -6,6 +6,10 @@ import cv2 as cv
 import pickle
 import matplotlib.pyplot as plt
 
+label_pth = '../../data/cropped/labels.pickle'  # 2D joint annotation location
+img_dir = 'data/cropped/'   # input image dir, please end with /
+mask_dir = ''   # output mask dir, please end with /
+
 def inside_polygon(x, y, points):
     n = len(points)
 
@@ -25,13 +29,13 @@ def inside_polygon(x, y, points):
 
 edges = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],[0,17],[17,18],[18,19],[19,20]]
 
-fi = open('../../data/cropped/labels.pickle', 'rb')
+fi = open(label_pth, 'rb')
 anno = pickle.load(fi)
 fi.close()
 
 for ii in xrange(3):     
 
-    img = misc.imread('data/cropped/'+str(ii) +'.png')
+    img = misc.imread(img_dir+str(ii) +'.png')
     mask = np.zeros((320,320), np.uint8)
      
     # Draw skeleton
@@ -77,10 +81,11 @@ for ii in xrange(3):
     bgdModel = np.zeros((1,65),np.float64)
     fgdModel = np.zeros((1,65),np.float64)        
 
+    # use GrabCut get image segmentation(mask)
     cv.grabCut(img,mask,None,bgdModel,fgdModel,5,cv.GC_INIT_WITH_MASK)
     mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
-    misc.imsave('data/out/mask_' + str(ii) + '.png', mask2*255)
-    #misc.imsave('data/out/' + str(ii) + '.png', mask2)
+    misc.imsave(mask_dir + 'mask_' + str(ii) + '.png', mask2*255)
+    misc.imsave(mask_dir + str(ii) + '.png', mask2)
 
 
 

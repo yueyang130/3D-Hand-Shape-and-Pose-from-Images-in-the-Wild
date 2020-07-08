@@ -15,7 +15,7 @@ pose_num = 6
 mesh_num = 778
 keypoints_num = 16
  
-dd = pickle.load(open('mano/models/MANO_RIGHT.pkl', 'rb'))
+dd = pickle.load(open('../manopth/manopth/mano/models/MANO_RIGHT.pkl', 'rb'))
 kintree_table = dd['kintree_table']
 id_to_col = {kintree_table[1,i] : i for i in range(kintree_table.shape[1])} 
 parent = {i : id_to_col[kintree_table[0,i]] for i in range(1, kintree_table.shape[1])}  
@@ -338,7 +338,7 @@ class _ResNet_Mano(nn.Module):
 
     def forward(self, x):
        
-        if (self.input_option):       
+        if self.input_option :
             x = self.conv11(x)
         else:
             x = self.conv1(x[:,0:3])
@@ -356,6 +356,7 @@ class _ResNet_Mano(nn.Module):
 
         xs = self.fc(x)
         xs = xs + self.mean
+        # xs shape: batch_size * 22
 
         # if pretrain the encoder, return param vector
         if self.pretrain:
@@ -370,17 +371,22 @@ class _ResNet_Mano(nn.Module):
 
         # get 3d mesh through pretrained MANO
         x3d = rot_pose_beta_to_mesh(rot,theta,beta)
+        # x3d shape: batch_size * (21 + 778) * 3
+
 
         # 2D joints  including 21 keypoints
         x = trans.unsqueeze(1) + scale.unsqueeze(1).unsqueeze(2) * x3d[:,:,:2] 
-        x = x.view(x.size(0),-1)      
+        x = x.view(x.size(0),-1)
+        # x shape : batch * 1598
+        # 1598 = (21 + 778) * 2
               
         #x3d = scale.unsqueeze(1).unsqueeze(2) * x3d
         #x3d[:,:,:2]  = trans.unsqueeze(1) + x3d[:,:,:2] 
         
-        return x, x3d
+        #return x, x3d
+        return x, x3d, xs
 
-def resnet34_Mano(ispretrain,input_option=1, **kwargs):
+def resnet34_Mano(ispretrain=False,input_option=1, **kwargs):
     
     model = _ResNet_Mano(ispretrain, BasicBlock, [3, 4, 6, 3], input_option, **kwargs)
     model.fc = nn.Linear(512 * 1, 22)

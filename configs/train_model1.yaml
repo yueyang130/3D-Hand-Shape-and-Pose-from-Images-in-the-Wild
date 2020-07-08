@@ -1,0 +1,31 @@
+# model type
+input_option: 1              # 1 use image and joint heat maps as input
+                             # 0 use image only as input
+
+# logger options
+snapshot_save_iter: 1000      # How often do you want to save trained models
+log_iter: 1                   # How often do you want to log the training stats
+
+# optimization options
+max_iter: 1000000             # maximum number of training iterations
+batch_size: 8                 # batch size
+weight_decay: 0.00001        # weight decay
+beta1: 0.5                    # Adam parameter
+beta2: 0.999                  # Adam parameter
+init: kaiming                 # initialization [gaussian/kaiming/xavier/orthogonal]
+lr: 0.0001                    # initial learning rate
+lr_policy: step               # learning rate scheduler
+step_size: 100000             # how often to decay learning rate
+gamma: 0.5                    # how much to decay learning rate
+
+# model options
+weight_2d: 1                  # the weight of 2D joint re-projection loss
+weight_3d: 100                # the weight of 3D joint loss
+weight_mask: 100              # the weight of hand mask loss
+weight_reg: 10                # the weight of parameter regularization loss
+
+
+# data options
+new_size: 256                               # first resize the shortest image side to this size
+data_root:             # dataset folder location
+output_pth: /home/lyf2/checkpoints/         # output path

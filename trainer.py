@@ -4,7 +4,7 @@ import numpy as np
 from torch.autograd import Variable
 from model import resnet34_Mano
 from utils import get_scheduler, \
-    weights_init, get_param_recon_loss_fn, get_model_list
+    weights_init, get_criterion, get_model_list
 import os
 
 class EncoderTrainer(nn.Module):
@@ -25,32 +25,52 @@ class EncoderTrainer(nn.Module):
         lr = params.lr
         beta1 = params.beta1
         beta2 = params.beta2
+        p_view = self.model.state_dict()
         self.encoder_opt = torch.optim.Adam([p for p in self.model.parameters() if p.requires_grad],
                                     lr = lr, betas=(beta1, beta2), weight_decay=params.weight_decay)
-        self.encoder_scheduler = get_scheduler(self.model, params)
+        self.encoder_scheduler = get_scheduler(self.encoder_opt, params)
 
         # set loss fn
         if self.ispretrain:
-            self.param_recon_loss_fn = get_param_recon_loss_fn(params['pretrain_loss_fn'])
+            self.get_param_recon_criterion = get_criterion(params['pretrain_loss_fn'])
         else :
-            #TODO
-            pass
+            self.joint_2d_criterion = get_criterion('L1')
+            self.joint_3d_criterion = get_criterion('L2')
+
 
         # Network weight initialization
         self.model.apply(weights_init(params.init))
 
-    def encoder_pretrain_update(self, x, gt):
+    def compute_mask_loss(self, mask):
+        ret = torch.tensor(1.) - torch.mean(mask)
+        return ret
+
+    def compute_param_reg_loss(self, vec):
+        assert vec.dim[0] == 22
+        beta_weight = 10**4
+        beta = vec[-10:]
+        theta = vec[-16:-10]
+        ret = torch.mean(theta**2) + beta_weight * torch.mean(beta**2)
+        return ret
+
+    def encoder_update(self, x, gt_2d, gt_3d, mask):
+        assert not self.ispretrain, "the method can be only used in train mode"
+
+        self.encoder_opt.zero_grad()
+        #TODO
+
+    def encoder_pretrain_update(self, x, gt_vec):
         assert self.ispretrain, "the method can be only used in pretrain mode"
 
         self.encoder_opt.zero_grad()
         # encode
         param_vector = self.model(x)
         # get groundtruth
-        assert gt.dim[0] == param_vector.dim[0]
-        param_gt = gt[1:]
+        assert gt_vec.shape[0] == param_vector.shape[0]
+        param_gt = gt_vec[1 :]
 
         # loss
-        self.vec_rec_loss = self.param_recon_loss_fn(param_vector, param_gt)
+        self.vec_rec_loss = self.get_param_recon_criterion(param_vector, param_gt)
         self.vec_rec_loss.backward()
         self.encoder_opt.step()
 

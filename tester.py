@@ -34,7 +34,7 @@ for i, data in enumerate(testloader, 0):
     print("%d/%d"%(i, len(testloader)))
     images = data
     images = Variable(images.cuda())
-    out1, out2 = model(images)
+    out1, out2, _ = model(images)
 
     imgs = images[0].data
     imgs = imgs[:3, :, :].permute(1, 2, 0)

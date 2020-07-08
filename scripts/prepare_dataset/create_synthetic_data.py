@@ -19,15 +19,16 @@ from prepare_background import get_img_path_list
 #        self.vc = color
 
 # total number of synthetic image
-SYNTHETIC_NUM = 50
+SYNTHETIC_NUM = 5000
 # total number of bg images
 model_pth = '/home/lyf/yy_ws/code/manopth/manopth/mano/models/MANO_RIGHT.pkl'
 bg_pth    = 'data/backgrounds'
-output_path = '/home/lyf2/dataset/3dhand/syn/'
+output_path = '/home/lyf2/dataset/3dhand/syn/raw/'
 
-if not os.path.exists(output_path):
-    os.makedirs(output_path)
-shutil.rmtree(output_path)
+if os.path.exists(output_path):
+    shutil.rmtree(output_path)
+os.makedirs(output_path)
+
 
 ls = sorted(get_img_path_list(bg_pth))
 bg_number = len(ls)
@@ -58,6 +59,8 @@ joints = []
 gtruth = []
 
 for i in xrange(0,SYNTHETIC_NUM):
+    if i % 100 == 0:
+        print("finish %d / %d"%(i, SYNTHETIC_NUM))
     # randomly sample beta and pose parameter of hand model
     m.betas[:] =  np.array([random.uniform(-1.,1.) for _ in xrange(10)]) * .03
     m.pose[:] = np.array([random.uniform(-1.,1.) for _ in xrange(9)]) * 2.
