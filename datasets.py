@@ -9,7 +9,9 @@ from transform import Scale
 import pickle
 
 def getItem(data_dir, index, img_transform):
-    imgs = [img_transform(Image.open(os.path.join(data_dir, '%d.png' % index)).convert('RGB'))]
+    img = Image.open(os.path.join(data_dir, '%d.png' % index)).convert('RGB')
+    #img_view = ToTensor(img)
+    imgs = [img_transform(img)]
     # TODO: comment the heatmap temporarily due to the uninstallation of pyOpenPose
     # for i in xrange(7) :
     #     imgs.append(

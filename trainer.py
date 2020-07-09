@@ -7,6 +7,14 @@ from utils import get_scheduler, \
     weights_init, get_criterion, get_model_list
 import os
 
+
+def __ee__(x) :
+    if type(x) is torch.Tensor :
+        return x.item()
+    else :
+        return x
+
+
 class EncoderTrainer(nn.Module):
     """
     We pre-train the encoder to ensure that
@@ -41,6 +49,14 @@ class EncoderTrainer(nn.Module):
         # Network weight initialization
         self.model.apply(weights_init(params.init))
 
+    def comupte_2d_joint_loss(self, joint_rec, joint_gt):
+        pass
+        #TODO
+
+    def compute_3d_joint_loss(selfself, joint_rec, joint_gt):
+        pass
+        #TODO
+
     def compute_mask_loss(self, mask):
         ret = torch.tensor(1.) - torch.mean(mask)
         return ret
@@ -73,19 +89,24 @@ class EncoderTrainer(nn.Module):
         self.vec_rec_loss.backward()
         self.encoder_opt.step()
 
+    def sample_pretrain(self, x, gt_vec):
+        assert self.ispretrain, "the method can be only used in pretrain mode"
+        # encode
+        param_encoded = self.model(x)
+        # get groundtruth
+        assert gt_vec.shape == param_encoded.shape
+        # loss
+        param_gt = torch.detach(gt_vec)
+        self.vec_rec_loss = self.get_param_recon_criterion(param_encoded, param_gt)
+        return self.vec_rec_loss
+
     def update_lr(self):
         if self.encoder_scheduler is not None:
             self.encoder_scheduler.step()
 
     def print_losses(self):
-        def ee(x):
-            if type(x) is torch.Tensor:
-                return x.item()
-            else:
-                return x
-
         if self.ispretrain:
-            print("pretrain rec_param loss: %.4f"%(ee(self.vec_rec_loss)))
+            print("pretrain rec_param loss: %.4f" % (__ee__(self.vec_rec_loss)))
         else:
             #TODO
             pass

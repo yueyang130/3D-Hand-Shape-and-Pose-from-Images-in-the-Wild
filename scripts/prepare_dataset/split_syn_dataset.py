@@ -3,16 +3,16 @@ import shutil
 import pickle
 from prepare_background import get_img_path_list
 
-crop_dir = '/home/lyf2/dataset/3dhand/syn/crop'
+img_dir = '/home/lyf2/dataset/3dhand/syn/raw'
 gt_pth = '/home/lyf2/dataset/3dhand/syn/raw/gt.pickle'
 
-n_image = len(get_img_path_list(crop_dir))
+n_image = len(get_img_path_list(img_dir))
 print('total number of iamges is %d'%n_image)
 
 TESTSET_SZIE = 1000
 TRAINSET_SZIE = n_image - TESTSET_SZIE
 
-out_dir = crop_dir + '_split'
+out_dir = img_dir + '_split'
 trainset_pth = os.path.join(out_dir, 'train')
 testset_pth = os.path.join(out_dir, 'test')
 if os.path.exists(out_dir):
@@ -27,7 +27,7 @@ train_gt = []
 test_gt = []
 
 for ii in range(n_image):
-    src = os.path.join(crop_dir, '%d.png'%ii)
+    src = os.path.join(img_dir, '%d.png' % ii)
     if ii < TRAINSET_SZIE:
         dst = os.path.join(trainset_pth, '%d.png'%ii)
         train_gt.append(gts[ii])

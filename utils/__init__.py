@@ -83,7 +83,7 @@ def get_data_loader(config, isPretrain):
         trainDataset = HandTrainSet(os.path.join(config['data_root'], 'train'))
         testDataset  = HandTrainSet(os.path.join(config['data_root'], 'test'))
     trainloader = DataLoader(trainDataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    testLoader  = DataLoader(testDataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    testLoader  = DataLoader(testDataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     return trainloader, testLoader
 
 # outpur dir structure
@@ -113,7 +113,15 @@ def prepare_folder_strcutre(model_dir):
         print("Creating directory: {}".format(checkpoint_directory))
         os.makedirs(checkpoint_directory)
 
-    return log_directory, checkpoint_directory, image_directory
+    test_directory = os.path.join(model_dir, 'test')
+    if not os.path.exists(test_directory):
+        print("Creating directory: {}".format(test_directory))
+        os.makedirs(test_directory)
+
+
+
+    return log_directory, checkpoint_directory,\
+           image_directory, test_directory
 
 class Timer:
     def __init__(self, msg):
