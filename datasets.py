@@ -40,11 +40,14 @@ class HandPretrainSet(data.Dataset) :
         self.imgs = get_img_path_list(root)
         if len(self.imgs) == 0 :
             assert 0, "dir %s includes no image!"%(root)
-        if len(self.imgs) % 8 != 0 :
-            assert 0, "the image number in dir %s is not the multiple of 8 (1 image and 7 heat maps)"
+        # TODO: uncomment after installing PyOpenPose
+        # if len(self.imgs) % 8 != 0 :
+        #     assert 0, "the image number in dir %s is not the multiple of 8 (1 image and 7 heat maps)"
 
     def __len__(self) :
-        return len(self.imgs)/8
+        #TODO
+        #return len(self.imgs)/8
+        return len(self.imgs)
 
     def __getitem__(self, index) :
         self.img_transform = Compose([
@@ -53,7 +56,7 @@ class HandPretrainSet(data.Dataset) :
         input_img = getItem(self.data_dir, index, self.img_transform)
         # get gt params
         vec = self.vectors[index]
-        vec = vec[1:]
+        vec = vec[1:]  # delete the first element 1 (valid bit)
         return input_img, vec
 
 

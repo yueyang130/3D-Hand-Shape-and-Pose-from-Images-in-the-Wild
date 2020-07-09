@@ -44,14 +44,14 @@ while True:
         images = images.cuda().detach()
         gt_vecs = gt_vecs.cuda().detach()
 
-        with utils.Timer("Elapsed time in update: %f"):
-            pretrainer.update_lr()
-            pretrainer.encoder_pretrain_update(images, gt_vecs)
-            torch.cuda.synchronize()  # the code synchronize gpu and cpu process , ensuring the accuracy of time measure
+        #with utils.Timer("Elapsed time in update: %f"):
+        pretrainer.update_lr()
+        pretrainer.encoder_pretrain_update(images, gt_vecs)
+        torch.cuda.synchronize()  # the code synchronize gpu and cpu process , ensuring the accuracy of time measure
 
         # Dump training stats in log file
         if (iterations + 1) % config['log_iter'] == 0:
-            print("Iteration: %08d/%08d" % (iterations + 1, max_iter))
+            print "Iteration: %08d/%08d, " % (iterations + 1, max_iter),
             pretrainer.print_losses()
             utils.write_loss(iterations, pretrainer, train_writer)
 

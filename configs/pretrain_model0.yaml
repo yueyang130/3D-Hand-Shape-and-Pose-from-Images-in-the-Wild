@@ -3,11 +3,11 @@ input_option: 0              # 1 use image and joint heat maps as input
                              # 0 use image only as input
 
 # logger options
-snapshot_save_iter: 1000      # How often do you want to save trained models
+snapshot_save_iter: 5000      # How often do you want to save trained models
 log_iter: 1                   # How often do you want to log the training stats
 
 # optimization options
-max_iter: 1000000             # maximum number of training iterations
+max_iter: 100000             # maximum number of training iterations
 batch_size: 8                 # batch size
 weight_decay: 0.00001        # weight decay
 beta1: 0.5                    # Adam parameter
@@ -25,4 +25,4 @@ pretrain_loss_fn: L1          # vector reconstruction loss fn [L1/L2]
 num_workers: 0                              # number of data loading threads
 new_size: 256                               # first resize the shortest image side to this size
 data_root:  /home/lyf2/dataset/3dhand/syn/crop_split            # dataset folder location
-output_pth: /home/lyf2/checkpoints/         # output path
+output_pth: /home/lyf2/checkpoints/3dhand/pretrain          # output path

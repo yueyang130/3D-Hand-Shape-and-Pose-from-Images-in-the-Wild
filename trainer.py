@@ -64,13 +64,12 @@ class EncoderTrainer(nn.Module):
 
         self.encoder_opt.zero_grad()
         # encode
-        param_vector = self.model(x)
+        param_encoded = self.model(x)
         # get groundtruth
-        assert gt_vec.shape[0] == param_vector.shape[0]
-        param_gt = gt_vec[1 :]
-
+        assert gt_vec.shape == param_encoded.shape
         # loss
-        self.vec_rec_loss = self.get_param_recon_criterion(param_vector, param_gt)
+        param_gt = torch.detach(gt_vec)
+        self.vec_rec_loss = self.get_param_recon_criterion(param_encoded, param_gt)
         self.vec_rec_loss.backward()
         self.encoder_opt.step()
 
@@ -86,7 +85,7 @@ class EncoderTrainer(nn.Module):
                 return x
 
         if self.ispretrain:
-            print("pretrain rec_param loss: %.4f"%(ee(self.pretrain_loss)))
+            print("pretrain rec_param loss: %.4f"%(ee(self.vec_rec_loss)))
         else:
             #TODO
             pass
