@@ -55,16 +55,25 @@ def get_criterion(loss_type):
 
 
 # Get model list for resume
-def get_model_list(dirname, key):
+def get_model_list(dirname, key, version = None):
     if os.path.exists(dirname) is False:
         return None
-    gen_models = [os.path.join(dirname, f) for f in os.listdir(dirname) if
-                  os.path.isfile(os.path.join(dirname, f)) and key in f and ".pt" in f]
-    if gen_models is None:
+
+    if version is None:
+        gen_models = [os.path.join(dirname, f) for f in os.listdir(dirname) if
+                      os.path.isfile(os.path.join(dirname, f)) and key in f and ".pt" in f]
+        if gen_models is None :
+            return None
+        gen_models.sort()
+        last_model_name = gen_models[-1]
+        return last_model_name
+    else:
+        for f in os.listdir(dirname):
+            if os.path.isfile(os.path.join(dirname, f)) and key in f and ".pt" in f and int(f[-12:-4]) == version:
+                return  os.path.join(dirname, f)
         return None
-    gen_models.sort()
-    last_model_name = gen_models[-1]
-    return last_model_name
+
+
 
 def get_config(config):
     with open(config, 'r') as stream:
@@ -165,3 +174,9 @@ def parse_labelfile(label_mode, label_ext, label_pth, joint_keyname, n_image) :
 
 
     return joints
+
+def resume_loss_log(test_dir, version):
+
+    with open(os.path.join(test_dir, 'iter_%d_loss.pickle'%version), 'r') as fo:
+        return pickle.load(fo)
+

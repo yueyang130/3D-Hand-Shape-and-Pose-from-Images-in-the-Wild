@@ -9,11 +9,13 @@ import utils
 import sys
 from pretrain_tester import walk_dataset
 import matplotlib.pyplot as plt
+import pickle
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str,
                     help='Path to the config file')
 parser.add_argument('--resume', action='store_true')
+parser.add_argument('--version', type=int, default=None, help='The iteraiton of the model that you want to resume from')
 parser.add_argument('--gpu_id', type=int, default=0, help='gpu_id')
 opts = parser.parse_args()
 
@@ -34,14 +36,16 @@ model_name = os.path.splitext(os.path.basename(opts.config))[0]
 model_dir = os.path.join(config['output_pth'], model_name)
 log_dir, checkpoint_dir, image_dir, test_dir = utils.prepare_folder_strcutre(model_dir)
 train_writer = tensorboardX.SummaryWriter(log_dir)
+loss_log = [[], [], []]
 
 # start train
 if opts.resume:
-    iterations = pretrainer.resume(checkpoint_dir, config)
+    iterations = pretrainer.resume(checkpoint_dir, config, version=opts.version)
+    loss_log = utils.resume_loss_log(test_dir, iterations)
 else:
     iterations = 0
 
-loss_log = [[], [], []]
+
 
 while True:
     for images, gt_vecs in trainloader:
@@ -69,8 +73,12 @@ while True:
             loss_log[0].append(iterations+1)
             loss_log[1].append(train_loss)
             loss_log[2].append(test_loss)
+            with open(os.path.join(test_dir, 'iter_%d_loss.pickle'%(iterations + 1)), 'w') as fo:
+                pickle.dump(loss_log, fo)
+
+
         # save the test result
-        if (iterations + 1) % config['snapshot_save_iter'] == 0 :
+        if (iterations + 1) % config['show_iter'] == 0 :
             plt.plot(loss_log[0], loss_log[1], '.-', label='train_loss')
             plt.plot(loss_log[0], loss_log[2], '.-', label='test_loss')
             plt.xlabel('iterations')

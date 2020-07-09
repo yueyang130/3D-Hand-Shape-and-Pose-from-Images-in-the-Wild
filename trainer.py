@@ -124,11 +124,14 @@ class EncoderTrainer(nn.Module):
         torch.save(self.model.state_dict(), model_pth)
         torch.save(self.encoder_opt.state_dict(), opt_pth)
 
-    def resume(self, checkpoint_dir, params):
-        last_model_name = get_model_list(checkpoint_dir, 'model')
-        state_dict = torch.load(last_model_name)
+    def resume(self, checkpoint_dir, params, version = None):
+
+        model_name = get_model_list(checkpoint_dir, 'model', version)
+
+        state_dict = torch.load(model_name)
         self.model.load_state_dict(state_dict)
-        iterations = int(last_model_name[-12:-4])
+        iterations = int(model_name[-12:-4])
+        if version is not None: assert version == iterations
 
         state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer.pth'))
         self.encoder_opt.load_state_dict(state_dict)
