@@ -1,11 +1,10 @@
 import os
 from PIL import Image
-import cv2
 import torch
 from torch.utils import data
 from scripts.prepare_dataset.prepare_background import get_img_path_list
 from torchvision.transforms import ToTensor, Compose
-from transform import Scale
+from scripts.prepare_dataset.transform import Scale
 import pickle
 
 def getItem(data_dir, index, img_transform):
@@ -50,6 +49,26 @@ class HandPretrainSet(data.Dataset) :
         #TODO
         #return len(self.imgs)/8
         return len(self.imgs)
+
+
+    def data_convert(self):
+        """
+        It's no problem to scale the pretrain set images because the images are originally 320*320.
+        However, when scale the trainset images, the corresponding labels should be changed simultaniously
+        """
+        #TODO
+        pass
+
+    def data_augmentation(self):
+        #TODO
+        pass
+
+    def img_transform(self):
+        """
+        transform image to tensor whose value is between [0,1]
+        """
+        #TODO
+        pass
 
     def __getitem__(self, index) :
         self.img_transform = Compose([
