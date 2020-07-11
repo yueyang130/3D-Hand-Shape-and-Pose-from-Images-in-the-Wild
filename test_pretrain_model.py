@@ -3,6 +3,7 @@
 
 from trainer import EncoderTrainer
 import torch
+import numpy as np
 import argparse
 import torch.backends.cudnn as cudnn
 import os
@@ -10,7 +11,7 @@ import tensorboardX
 import utils
 import sys
 
-def walk_dataset(pretrainer, dataloader, batch_size, test_num):
+def pre_sample(pretrainer, dataloader, batch_size, test_num):
     cnt_batch = 0
     vec_rec_loss = 0
     msg = []
@@ -24,6 +25,18 @@ def walk_dataset(pretrainer, dataloader, batch_size, test_num):
             if num_data >= test_num : break
     return num_data, vec_rec_loss/cnt_batch
 
+def sample(trainer, dataloader, batch_size, test_num):
+    cnt_batch = 0
+    total_losses = np.zeros(5)
+    msg = []
+    with torch.no_grad() :
+        for imgs, gt_2d, gt_3d, mask in dataloader :
+            results, losses = trainer.sample_train(imgs, gt_2d, gt_3d, mask)
+            total_losses += losses
+            cnt_batch += 1
+            num_data = cnt_batch * batch_size
+            if num_data >= test_num : break
+    return num_data, total_losses/cnt_batch
 
 def main():
 
@@ -56,12 +69,12 @@ def main():
     iterations = pretrainer.resume(checkpoint_dir, config)
     test_log_pth = os.path.join(test_dir, '%d.txt'%iterations)
 
-    num_data, avg_loss = walk_dataset(pretrainer, trainloader, config['batch_size'])
+    num_data, avg_loss = pre_sample(pretrainer, trainloader, config['batch_size'])
     msg = ['The train dataset has %d input data, '%num_data  +
         'For pretrain-model%d-%d,the avarage vec_rec_loss is %f\n'%
                (config['input_option'], iterations, avg_loss)]
 
-    num_data, avg_loss = walk_dataset(pretrainer, testloader, config['batch_size'])
+    num_data, avg_loss = pre_sample(pretrainer, testloader, config['batch_size'])
     msg.append('The test dataset has %d input data, '%num_data  +
         'For pretrain-model%d-%d,the avarage vec_rec_loss is %f\n'%
                (config['input_option'], iterations, avg_loss))

@@ -53,7 +53,6 @@ def get_criterion(loss_type):
     else:
         assert 0, "Unsupported loss fn"
 
-
 # Get model list for resume
 def get_model_list(dirname, key, version = None):
     if os.path.exists(dirname) is False:

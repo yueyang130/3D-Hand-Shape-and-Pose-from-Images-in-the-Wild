@@ -7,7 +7,7 @@ import os
 import tensorboardX
 import utils
 import sys
-from pretrain_tester import walk_dataset
+from test_pretrain_model import pre_sample
 import matplotlib.pyplot as plt
 import pickle
 
@@ -29,6 +29,7 @@ max_iter = config['max_iter']
 # setup model and data loader
 pretrainer = EncoderTrainer(config, ispretrain=True)
 pretrainer.cuda()
+pretrainer.train()
 trainloader, testloader = utils.get_data_loader(config, isPretrain=True)
 
 # setup logger and output folders
@@ -66,15 +67,17 @@ while True:
 
         # test
         if (iterations + 1) % config['test_iter'] == 0:
-            new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=True)
-            train_num, train_loss = walk_dataset(pretrainer, new_trainloader, config['batch_size'], config['test_num'])
-            test_num, test_loss = walk_dataset(pretrainer, new_testLoader, config['batch_size'], config['test_num'])
-            #print 'test on %d iamges in trainset, %d iamges in testset'%(train_num, test_num)
-            loss_log[0].append(iterations+1)
-            loss_log[1].append(train_loss)
-            loss_log[2].append(test_loss)
-            with open(os.path.join(test_dir, 'iter_%d_loss.pickle'%(iterations + 1)), 'w') as fo:
-                pickle.dump(loss_log, fo)
+            with torch.no_grad():
+
+                new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=True)
+                train_num, train_loss = pre_sample(pretrainer, new_trainloader, config['batch_size'], config['test_num'])
+                test_num, test_loss = pre_sample(pretrainer, new_testLoader, config['batch_size'], config['test_num'])
+                #print 'test on %d iamges in trainset, %d iamges in testset'%(train_num, test_num)
+                loss_log[0].append(iterations+1)
+                loss_log[1].append(train_loss)
+                loss_log[2].append(test_loss)
+                with open(os.path.join(test_dir, 'iter_%d_loss.pickle'%(iterations + 1)), 'w') as fo:
+                    pickle.dump(loss_log, fo)
 
 
         # save the test result

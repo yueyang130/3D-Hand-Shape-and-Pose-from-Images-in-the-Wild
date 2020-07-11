@@ -4,7 +4,7 @@ import torch
 from torch.utils import data
 from scripts.prepare_background import get_img_path_list
 from torchvision.transforms import ToTensor, Compose
-from scripts.prepare_dataset.transform import Scale
+from utils.transform import Scale
 import pickle
 
 def getItem(data_dir, index, img_transform):

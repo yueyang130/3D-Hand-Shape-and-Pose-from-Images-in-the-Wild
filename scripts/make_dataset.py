@@ -17,7 +17,7 @@ import shutil
 from prepare_background import get_img_path_list
 import numpy as np
 from crop import get_crop_pos
-
+from prepare_dataset.mm2px import JointTransfomer
 
 def show_pts_on_img(image, pts,
     img_pth = '/home/lyf2/dataset/3dhand/dataset/pts_on_img.png'):
@@ -26,7 +26,8 @@ def show_pts_on_img(image, pts,
     kpsoi = KeypointsOnImage(kps, shape=image.shape)
     misc.imsave(img_pth, kpsoi.draw_on_image(image, size = 7))
 
-def crop(image, pts):
+def crop(image, pts, pts_3d = None):
+    #TODO: add 3d
     #show_pts_on_img(image, pts)
 
     vs, ve, us, ue = get_crop_pos(image, pts)
@@ -45,17 +46,23 @@ def crop(image, pts):
     resized_image, resized_pts = resz.augment(image=cropped_image, keypoints=[cropped_pts[:, :2]])
     resized_pts = resized_pts[0]
     resized_pts = np.concatenate([resized_pts, cropped_pts[:,2:]], axis=1)
-
     #show_pts_on_img(resized_image, resized_pts)
+
     resized_pts = resized_pts.round(3)
     return resized_image, resized_pts
 
-def flip(image, pts):
+def flip(image, pts, pts_3d = None):
+    # TODO: test whether augment can flip 3d, too.
     myFilp = iaa.Fliplr(p = 1.0)
     flipped_img, flipped_pts = myFilp.augment(image=image, keypoints=[pts[:, :2]])
     flipped_pts = flipped_pts[0]
 
-    return flipped_img, flipped_pts
+    if pts_3d is not None:
+        flipped_pts_3d = myFilp.augment(keypoints=pts_3d)
+        return flipped_img, flipped_pts, flipped_pts_3d
+    else:
+        return flipped_img, flipped_pts
+
 
 def get_image_dict(cnt, pts_2d, pts_3d):
     image_dict = {
@@ -114,6 +121,8 @@ def process_MPII(outpath, infor_dict, cnt, num = float('inf'), trainset = True):
         is_left = dat['is_left']
         img_name = os.path.splitext(os.path.split(json_pth)[1])[0]
         img = misc.imread(root + img_name + '.jpg')
+
+
         # crop and resize
         new_img, new_pts = crop(img, pts)
         # flip
@@ -132,13 +141,51 @@ def process_MPII(outpath, infor_dict, cnt, num = float('inf'), trainset = True):
 
 def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
     """
-        The stereo dataset also contains left hands, which should be flipped to right one.
+        The stereo dataset only contains left hands, which should be flipped to right one.
         And it has (per dir) a label with the extension name of 'mat'.
     """
-    BBpth = '/home/lyf2/dataset/3dhand/stereo/labels/B1Counting_BB.mat'
-    SKpth = '/home/lyf2/dataset/3dhand/stereo/labels/B1Counting_SK.mat'
-    BB = scio.loadmat(BBpth)
-    SK = scio.loadmat(SKpth)
+    sequences = [
+        'B2Counting', 'B2Random',
+        'B3Counting', 'B3Random',
+        'B4Counting', 'B4Random',
+        'B5Counting', 'B5Random',
+        'B6Counting', 'B6Random',
+        ]
+
+    root = ''
+    myJTransfomer = JointTransfomer('BB')
+
+    for seq in sequences:
+        anno_pth = root + 'labels' + '/%s_BB.mat' % seq
+        anno = scio.loadmat(anno_pth) # (3, 21, 1500)
+
+
+        for im_id in range(1500):
+            if im_id >= num: break
+            img_pth_l = root + seq + '/BB_left_%d.png'%im_id
+            img_pth_r = root + seq + '/BB_right_%d.png'%im_id
+            img_l = misc.imread(img_pth_l)
+            img_r = misc.imread(img_pth_r)
+            anno_xyz = anno[:, :, im_id]
+
+            # TODO: transpose (3,21) to (21,3)
+
+            # TODO: add the code that changes 3d joints
+
+            # get 2d joints
+            anno_uv_l, anno_uv_r = myJTransfomer.transfrom3d_to_2d(anno_xyz)
+            # crop and resize
+            new_img_l, new_anno_uv_l = crop(img_l, anno_uv_l)
+            new_img_r, new_anno_uv_r = crop(img_r, anno_uv_r)
+            # flip
+            new_img_l, new_anno_uv_l = flip(img_l, anno_uv_l)
+            new_img_r, new_anno_uv_r = flip(img_r, anno_uv_r)
+
+            img_pth = outpath + '%08d.png'%cnt
+            misc.imsave(img_pth, new_img_l)
+            infor_dict['image'].append(get_image_dict(cnt, new_anno_uv_l, pts_3d=anno_xyz))
+
+            cnt += 1
 
 
     return cnt
@@ -154,7 +201,7 @@ def main():
     cnt = 0
     # test the process use only 3 images
     #cnt = process_PANOPTIC(train_outpath, infor_dict, cnt, 3)
-    #cnt = process_MPII(train_outpath, infor_dict, cnt, 3, trainset=True)
+    #cnt = process_MPII(train_outpath, infor_dict, cnt, 1, trainset=True)
     cnt = process_stereo(train_outpath, infor_dict, cnt, 3)
 
     infor_dict['img_num'] = cnt

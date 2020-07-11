@@ -4,7 +4,7 @@ from torch.autograd import Variable
 from torch.utils import data
 from model import resnet34_Mano
 from datasets import HandTestSet
-from scripts.prepare_dataset.transform import Scale
+from utils.transform import Scale
 from torchvision.transforms import ToTensor, Compose
 from PIL import Image
 import numpy as np

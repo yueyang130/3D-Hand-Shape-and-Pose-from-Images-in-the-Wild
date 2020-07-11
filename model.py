@@ -370,15 +370,16 @@ class _ResNet_Mano(nn.Module):
         beta = xs[:,12:] 
 
         # get 3d mesh through pretrained MANO
-        x3d = rot_pose_beta_to_mesh(rot,theta,beta)
         # x3d shape: batch_size * (21 + 778) * 3
+        x3d = rot_pose_beta_to_mesh(rot,theta,beta)
 
 
         # 2D joints  including 21 keypoints
-        x = trans.unsqueeze(1) + scale.unsqueeze(1).unsqueeze(2) * x3d[:,:,:2] 
-        x = x.view(x.size(0),-1)
         # x shape : batch * 1598
         # 1598 = (21 + 778) * 2
+        x = trans.unsqueeze(1) + scale.unsqueeze(1).unsqueeze(2) * x3d[:,:,:2] 
+        x = x.view(x.size(0),-1)
+
               
         #x3d = scale.unsqueeze(1).unsqueeze(2) * x3d
         #x3d[:,:,:2]  = trans.unsqueeze(1) + x3d[:,:,:2] 
