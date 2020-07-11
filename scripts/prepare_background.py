@@ -14,14 +14,17 @@ def is_image_file(filename):
     return any(str.endswith(filename, ext) for ext in IMG_EXTENSIONS)
 
 
-def get_img_path_list(dirpath):
+def get_img_path_list(dirpath, key = None):
     assert os.path.isdir(dirpath)
     img_pth_list = []
     for dirpath, _, files in os.walk(dirpath):
         for fname in files:
             if is_image_file(fname):
-                img_pth = os.path.join(dirpath, fname)
-                img_pth_list.append(img_pth)
+                if key is None or key in fname:
+                    img_pth = os.path.join(dirpath, fname)
+                    img_pth_list.append(img_pth)
+
+
 
     return img_pth_list
 

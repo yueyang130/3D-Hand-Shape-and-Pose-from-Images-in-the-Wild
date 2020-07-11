@@ -2,7 +2,7 @@ import os
 from PIL import Image
 import torch
 from torch.utils import data
-from scripts.prepare_dataset.prepare_background import get_img_path_list
+from scripts.prepare_background import get_img_path_list
 from torchvision.transforms import ToTensor, Compose
 from scripts.prepare_dataset.transform import Scale
 import pickle
