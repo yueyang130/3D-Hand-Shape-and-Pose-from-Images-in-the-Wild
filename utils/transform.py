@@ -1,6 +1,29 @@
 from PIL import Image
 import collections
 
+
+def data_convert() :
+    """
+    It's no problem to scale the pretrain set images because the images are originally 320*320.
+    However, when scale the trainset images, the corresponding labels should be changed simultaniously
+    """
+    # TODO
+    pass
+
+
+def data_augmentation() :
+    # TODO
+    pass
+
+
+def img_transform() :
+    """
+    transform image to tensor whose value is between [0,1]
+    """
+    # TODO
+    pass
+
+
 class Scale(object):
     def __init__(self, size, interpolation=Image.BILINEAR):
         

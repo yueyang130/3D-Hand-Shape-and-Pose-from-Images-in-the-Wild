@@ -112,7 +112,7 @@ def process_MPII(outpath, infor_dict, cnt, num = float('inf'), trainset = True):
         The MPII dataset also contains left hands, which should be flipped to right one.
         And it has (per image) a label with the extension name of 'json'.
     """
-    root = '' + ('manual_train/' if trainset else 'manual_test/')
+    root = '/home/lyf2/dataset/3dhand/MPII/' + ('manual_train/' if trainset else 'manual_test/')
     json_list = get_img_path_list(root, key='.json')
     for ii, json_pth in enumerate(json_list):
         if ii >= num : break
@@ -126,6 +126,7 @@ def process_MPII(outpath, infor_dict, cnt, num = float('inf'), trainset = True):
         # crop and resize
         new_img, new_pts = crop(img, pts)
         # flip
+        # TODO: test
         if is_left:
             new_img, new_pts = flip(new_img, new_pts)
 
@@ -164,8 +165,7 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
             if im_id >= num: break
             img_pth_l = root + seq + '/BB_left_%d.png'%im_id
             img_pth_r = root + seq + '/BB_right_%d.png'%im_id
-            img_l = misc.imread(img_pth_l)
-            img_r = misc.imread(img_pth_r)
+
             anno_xyz = anno[:, :, im_id]
 
             # TODO: transpose (3,21) to (21,3)
@@ -174,18 +174,27 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
 
             # get 2d joints
             anno_uv_l, anno_uv_r = myJTransfomer.transfrom3d_to_2d(anno_xyz)
-            # crop and resize
-            new_img_l, new_anno_uv_l = crop(img_l, anno_uv_l)
-            new_img_r, new_anno_uv_r = crop(img_r, anno_uv_r)
-            # flip
-            new_img_l, new_anno_uv_l = flip(img_l, anno_uv_l)
-            new_img_r, new_anno_uv_r = flip(img_r, anno_uv_r)
 
-            img_pth = outpath + '%08d.png'%cnt
-            misc.imsave(img_pth, new_img_l)
-            infor_dict['image'].append(get_image_dict(cnt, new_anno_uv_l, pts_3d=anno_xyz))
+            if os.path.exists(img_pth_l):
+                img_l = misc.imread(img_pth_l)
+                img_l, anno_uv_l = crop(img_l, anno_uv_l)
+                new_img_l, new_anno_uv_l = flip(img_l, anno_uv_l)
+                img_pth = outpath + '%08d.png' % cnt
+                misc.imsave(img_pth, new_img_l)
+                infor_dict['image'].append(get_image_dict(cnt, new_anno_uv_l, pts_3d=anno_xyz))
+                cnt += 1
 
-            cnt += 1
+            if os.path.exists(img_pth_r):
+                img_r = misc.imread(img_pth_r)
+                # crop and resize
+                img_r, anno_uv_r = crop(img_r, anno_uv_r)
+                # flip
+                new_img_r, new_anno_uv_r = flip(img_r, anno_uv_r)
+                img_pth = outpath + '%08d.png' % cnt
+                misc.imsave(img_pth, new_img_r)
+                infor_dict['image'].append(get_image_dict(cnt, new_anno_uv_r, pts_3d=anno_xyz))
+                cnt += 1
+
 
 
     return cnt
@@ -201,7 +210,7 @@ def main():
     cnt = 0
     # test the process use only 3 images
     #cnt = process_PANOPTIC(train_outpath, infor_dict, cnt, 3)
-    #cnt = process_MPII(train_outpath, infor_dict, cnt, 1, trainset=True)
+    cnt = process_MPII(train_outpath, infor_dict, cnt, 1, trainset=True)
     cnt = process_stereo(train_outpath, infor_dict, cnt, 3)
 
     infor_dict['img_num'] = cnt

@@ -41,7 +41,7 @@ class HandPretrainSet(data.Dataset) :
         self.imgs = get_img_path_list(root)
         if len(self.imgs) == 0 :
             assert 0, "dir %s includes no image!"%(root)
-        # TODO: uncomment after installing PyOpenPose
+        # TODO: uncomment the below code after installing PyOpenPose
         # if len(self.imgs) % 8 != 0 :
         #     assert 0, "the image number in dir %s is not the multiple of 8 (1 image and 7 heat maps)"
 
@@ -51,24 +51,7 @@ class HandPretrainSet(data.Dataset) :
         return len(self.imgs)
 
 
-    def data_convert(self):
-        """
-        It's no problem to scale the pretrain set images because the images are originally 320*320.
-        However, when scale the trainset images, the corresponding labels should be changed simultaniously
-        """
-        #TODO
-        pass
 
-    def data_augmentation(self):
-        #TODO
-        pass
-
-    def img_transform(self):
-        """
-        transform image to tensor whose value is between [0,1]
-        """
-        #TODO
-        pass
 
     def __getitem__(self, index) :
         self.img_transform = Compose([
@@ -91,12 +74,12 @@ class HandTrainSet(data.Dataset):
             assert 0, "the image number in dir %s is not the multiple of 8 (1 image and 7 heat maps)"
 
     def __getitem__(self, index):
-        #TODO: images of left hand are flipped horizontally
         self.img_transform = Compose([
             Scale((256, 256), Image.BILINEAR),
             ToTensor()])
         input_img = getItem(self.data_dir, index, self.img_transform)
         #TODO: get 2d & 3d joint annotations, masks
+
 
 
 
