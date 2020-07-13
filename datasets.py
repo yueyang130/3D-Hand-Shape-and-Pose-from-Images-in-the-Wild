@@ -78,7 +78,9 @@ class HandTrainSet(data.Dataset):
             Scale((256, 256), Image.BILINEAR),
             ToTensor()])
         input_img = getItem(self.data_dir, index, self.img_transform)
+
         #TODO: get 2d & 3d joint annotations, masks
+
 
 
 

@@ -150,7 +150,10 @@ def write_loss(iterations, trainer, train_writer):
 
 
 
-def parse_labelfile(label_mode, label_ext, label_pth, joint_keyname, n_image) :
+def parse_labelfile(label_mode, label_ext, label_pth, joint_keyname=None, n_image=None) :
+    """
+    label_model: 1 means every image has a label file; 0 means all iamges has a common file.
+    """
     joints = []
     if label_mode :
         if label_ext == '.json' :
@@ -161,13 +164,16 @@ def parse_labelfile(label_mode, label_ext, label_pth, joint_keyname, n_image) :
                     joints.append(joint)
         elif label_ext == '.mat' :
             pass
-            # TODO
         else :
             assert 0, "Unsupported file type of label"
     else :
         if label_ext == '.pickle':
             with open(label_pth, 'r') as fd :
                 joints = np.array(pickle.load(fd))
+        elif label_ext == '.json':
+            with open(label_pth, 'r') as fd :
+                dat = json.load(fd)
+                joints = dat if joint_keyname is None else np.array(dat[joint_keyname])
         else :
             assert 0, "Unsupported file type of label"
 
