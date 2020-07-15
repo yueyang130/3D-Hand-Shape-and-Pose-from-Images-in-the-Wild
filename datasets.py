@@ -177,7 +177,7 @@ class HandTrainSet(data.Dataset):
         # transform
         img = np.transpose(img/255., axes=(2,0,1)).astype(np.float32)
         joint_2d = joint_2d.astype(np.float32)
-        joint_3d = joint_2d.astype(np.float32)
+        joint_3d = joint_3d.astype(np.float32)
 
         return img, joint_2d, joint_3d, mask, valid
 

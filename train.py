@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str,
                     help='Path to the config file')
 parser.add_argument('--resume', action='store_true')
+parser.add_argument('--version', type=int, default=None, help='The iteraiton of the model that you want to resume from')
 parser.add_argument('--gpu_id', type=int, default=0, help='gpu_id')
 opts = parser.parse_args()
 
@@ -42,7 +43,7 @@ train_writer = tensorboardX.SummaryWriter(log_dir)
 
 # start train
 if opts.resume:
-    iterations = trainer.resume(checkpoint_dir, config)
+    iterations = trainer.resume(checkpoint_dir, config, version=opts.version)
     loss_log = utils.resume_loss_log(test_dir, iterations)
 else:
     loss_log = [[], [], []]
