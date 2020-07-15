@@ -82,6 +82,8 @@ class HandTrainSet(data.Dataset):
         self.imgs = get_img_path_list(self.img_dir)
         if len(self.imgs) == 0 :
             assert 0, "dir %s includes no image!"%(root)
+
+        self.count = [0] * self.__len__()
         # if len(self.imgs) % 8 != 0 :
         #     assert 0, "the image number in dir %s is not the multiple of 8 (1 image and 7 heat maps)"
 
@@ -149,6 +151,8 @@ class HandTrainSet(data.Dataset):
     #     return img, joint_2d, joint_3d, mask
 
     def __getitem__(self, index):
+
+        self.count[index] += 1
         #input_img = getItem(self.data_dir, index, self.img_transform)
         valid = np.array([1, 1]) # the validility of 3d joint and mask
         img = Image.open(os.path.join(self.img_dir, '%08d.png' % index)).convert('RGB')

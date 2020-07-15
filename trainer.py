@@ -72,14 +72,14 @@ class EncoderTrainer(nn.Module):
         # joint_gt: [bs, 21, 3]
         #ret = torch.sqrt(torch.sum((joint_rec - joint_gt)**2))
         ret = (joint_rec - joint_gt)**2
-        valid = valid.unsqueeze(dim=1).unsqueeze(2)
-        ret = torch.mean(valid * ret)
+        bs = valid.shape[0]
+        valid_index = torch.arange(bs)[valid == 1]
+        ret = ret[valid_index]   # valid_num * 21 * 3
+        ret = torch.mean(ret)
         return ret
 
 
     def compute_mask_loss(self, mesh2d, mask, valid):
-        #TODO: check mask_loss
-
         # for debug
         # mesh2d = mesh2d.cpu()
         # mask = mask.cpu()
@@ -87,6 +87,8 @@ class EncoderTrainer(nn.Module):
 
         mesh2d = self.convert_vec_to_2d(mesh2d)  # [bs, 778, 2]
         mesh2d = mesh2d.type(torch.int64)
+        #mesh2d = mesh2d.round()
+
 
         # mesh may out of image
         size = mask.shape[1]
@@ -101,10 +103,10 @@ class EncoderTrainer(nn.Module):
         index1 = mesh2d[:,:,1]
         index2 = mesh2d[:,:,0]
         ret = mask[index0, index1, index2]  # [bs, 778]
-        valid = valid.unsqueeze(1)
 
-
-        ret = valid * ret
+        bs = valid.shape[0]
+        valid_index = torch.arange(bs)[valid == 1]
+        ret = ret[valid_index]
         ret = torch.tensor(1.) - torch.mean(ret.type(torch.float32))
         return ret
 
