@@ -71,7 +71,7 @@ while True:
             utils.write_loss(iterations, trainer, train_writer)
 
         # test
-        if (iterations + 1) % config['test_iter'] == 0:
+        if iterations == 0 or (iterations + 1) % config['test_iter'] == 0:
             new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=False)
             train_num, train_loss = sample(trainer, new_trainloader, config['batch_size'], config['test_num'])
             test_num, test_loss = sample(trainer, new_testLoader, config['batch_size'], config['test_num'])

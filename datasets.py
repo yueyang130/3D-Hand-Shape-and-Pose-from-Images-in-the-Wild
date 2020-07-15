@@ -4,7 +4,7 @@ import torch
 from torch.utils import data
 from scripts.prepare_background import get_img_path_list
 from torchvision.transforms import ToTensor, Compose
-from utils.transform import Scale
+import utils.transform
 import pickle
 import json
 import imgaug as ia
@@ -13,6 +13,7 @@ from scripts.make_dataset import show_pts_on_img
 from scripts.segment import show_mask_on_img
 import random
 import numpy as np
+
 
 def getItem(data_dir, index, img_transform):
     img = Image.open(os.path.join(data_dir, '%d.png' % index)).convert('RGB')
@@ -31,7 +32,7 @@ class HandTestSet(data.Dataset):
         self.img_transform = img_transform
                                 
     def __len__(self):
-        return 3
+        return 5
 
     def __getitem__(self, index):
         return getItem(self.data_dir, index, self.img_transform)
@@ -59,7 +60,7 @@ class HandPretrainSet(data.Dataset) :
 
     def __getitem__(self, index) :
         self.img_transform = Compose([
-            Scale((256, 256), Image.BILINEAR),
+            utils.transform.Scale((256, 256), Image.BILINEAR),
             ToTensor()])
         input_img = getItem(self.data_dir, index, self.img_transform)
         # get gt params
@@ -171,6 +172,12 @@ class HandTrainSet(data.Dataset):
         else:
             joint_3d = np.zeros((21,3))
             valid[0] = 0
+
+        # set the center as the mean value of all points
+        # convert millimeter to meter
+        mean = np.mean(joint_3d, axis=0, keepdims=True)
+        joint_3d -= mean
+        joint_3d /= 1000
 
         # data augmentaion and resize
         img, mask, joint_2d = self.data_augmentation(img, mask, joint_2d)

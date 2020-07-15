@@ -3,16 +3,16 @@ import torch
 from torch.autograd import Variable
 from torch.utils import data
 from model import resnet34_Mano
-from datasets import HandTestSet
 from utils.transform import Scale
 from torchvision.transforms import ToTensor, Compose
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+import datasets
 
 # 1 use image and joint heat maps as input
 # 0 use image only as input 
-input_option = 1
+input_option = 0
 
 img_transform = Compose([
     Scale((256, 256), Image.BILINEAR),
@@ -23,7 +23,7 @@ content = template.readlines()
 template.close()
 
 # dataloader will load images as well as 2d joint heat maps
-testloader = data.DataLoader(HandTestSet('data/cropped', img_transform=img_transform),
+testloader = data.DataLoader(datasets.HandTestSet('data/cropped', img_transform=img_transform),
                             num_workers=0,batch_size=1, shuffle=False, pin_memory=False)
 
 model = torch.nn.DataParallel(resnet34_Mano(input_option=input_option), device_ids=[0])
