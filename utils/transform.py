@@ -1,17 +1,6 @@
 from PIL import Image
 import collections
 
-def data_augmentation() :
-    """
-        It's no problem to scale the pretrain set images because the images are originally 320*320.
-        However, when scale the trainset images, the corresponding labels should be changed simultaniously
-    """
-    # TODO
-    pass
-
-
-
-
 
 class Scale(object):
     def __init__(self, size, interpolation=Image.BILINEAR):

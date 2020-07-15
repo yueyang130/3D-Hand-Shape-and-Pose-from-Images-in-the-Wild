@@ -47,16 +47,17 @@ else:
     iterations = 0
 
 while True:
-    for images, gt_2d, gt_3d, mask  in trainloader:
+    for images, gt_2d, gt_3d, mask, valid_3d  in trainloader:
         # detach returns a new Variable whose req_grd is False
         images = images.cuda().detach()
         gt_2d  = gt_2d.cuda().detach()
         gt_3d  = gt_3d.cuda().detach()
         mask   = mask.cuda().detach()
+        valid_3d = valid_3d.cuda().detach()
 
         with utils.Timer("Elapsed time in update: %f"):
             trainer.update_lr()
-            trainer.encoder_update(images, gt_2d, gt_3d, mask)
+            trainer.encoder_update(images, gt_2d, gt_3d, mask, valid_3d)
             torch.cuda.synchronize()  # the code synchronize gpu and cpu process , ensuring the accuracy of time measure
 
         # Dump training stats in log file
@@ -67,7 +68,7 @@ while True:
 
         # test
         if (iterations + 1) % config['test_iter'] == 0:
-            new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=True)
+            new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=False)
             train_num, train_loss = sample(trainer, new_trainloader, config['batch_size'], config['test_num'])
             test_num, test_loss = sample(trainer, new_testLoader, config['batch_size'], config['test_num'])
             #print 'test on %d iamges in trainset, %d iamges in testset'%(train_num, test_num)

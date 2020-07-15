@@ -5,7 +5,7 @@ import scipy.misc as misc
 import cv2 as cv
 from prepare_background import get_img_path_list
 import os
-from utils import parse_labelfile
+import utils
 import shutil
 import pickle
 
@@ -127,7 +127,7 @@ def main():
         shutil.rmtree(crop_dir)
     os.makedirs(crop_dir)
 
-    joints = parse_labelfile(label_mode, label_ext, label_pth, joint_keyname, n_image)
+    joints = utils.parse_labelfile(label_mode, label_ext, label_pth, joint_keyname, n_image)
 
 
     for ii in xrange(n_image):

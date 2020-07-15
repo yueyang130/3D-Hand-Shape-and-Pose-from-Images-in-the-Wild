@@ -7,6 +7,21 @@ import pickle
 import matplotlib.pyplot as plt
 import utils
 
+def show_mask_on_img(img, mask,
+    img_pth = '/home/lyf2/dataset/3dhand/dataset/mask_on_img.png'):
+    mask = np.expand_dims(mask, 2)
+    blue_mask = np.concatenate([np.zeros_like(mask),
+                                        np.zeros_like(mask), mask], axis=2)
+    # mask_on_img = img + blue_mask
+    # mask_on_img[mask_on_img > 255] = 255
+    mask_on_img = np.copy(img)
+    mask_on_img[blue_mask > 0] = 255
+    misc.imsave(img_pth, mask_on_img)
+
+    a = 1
+
+
+
 def inside_polygon(x, y, points):
     n = len(points)
 
@@ -82,10 +97,16 @@ def generate_mask(img, anno, mask_dir, ii):
     fgdModel = np.zeros((1,65),np.float64)
 
     # use GrabCut get image segmentation(mask)
-    cv.grabCut(img,mask,None,bgdModel,fgdModel,5,cv.GC_INIT_WITH_MASK)
-    mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
-    misc.imsave(mask_dir + 'mask_%08d.png'%ii, mask2*255)
-    misc.imsave(mask_dir + '%08d.png'%ii, mask2)
+    try:
+        cv.grabCut(img,mask,None,bgdModel,fgdModel,5,cv.GC_INIT_WITH_MASK)
+        mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
+        misc.imsave(mask_dir + 'mask_%08d.png' % ii, mask2 * 255)
+        misc.imsave(mask_dir + '%08d.png' % ii, mask2)
+        #show_mask_on_img(img, mask2 * 255)
+    except Exception:
+        print "ignore the %dth mask"%(ii+1)
+
+
 
 def main2():
     label_pth = '../../data/cropped/labels.pickle'  # 2D joint annotation location
@@ -93,7 +114,7 @@ def main2():
     mask_dir = ''  # output mask dir, please end with /
 
 
-def main():
+def main(resume_train=True, resume_index=0):
     root = '/home/lyf2/dataset/3dhand/dataset/'
     sel = ['train','test']
     label_pths = [root + x + '/joints.json' for x in sel]  # 2D joint annotation location
@@ -108,7 +129,12 @@ def main():
         num = datas['img_num']
         ls = datas['image']
 
-        for ii in xrange(num) :
+        if resume_train:
+            start = resume_index if j == 0 else 0
+        else:
+            start = 0 if j == 0 else resume_index
+
+        for ii in xrange(start,num) :
             dat = ls[ii]
             # img = misc.imread(img_dirs[j]+str(ii) +'.png')
             img = misc.imread(img_dirs[j] + dat['img_paths'])
@@ -118,6 +144,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(True, resume_index=2809)
 
 

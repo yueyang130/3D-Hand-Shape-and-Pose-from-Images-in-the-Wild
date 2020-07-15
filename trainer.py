@@ -61,6 +61,7 @@ class EncoderTrainer(nn.Module):
 
 
     def comupte_2d_joint_loss(self, joint_rec, joint_gt):
+        # TODO:test
         joint_rec = self.convert_vec_to_2d(joint_rec)
         valid_idx = (joint_gt[:, :, 2] == 1)
         valid_idx = torch.cat([valid_idx, valid_idx], dim=2)
@@ -69,15 +70,28 @@ class EncoderTrainer(nn.Module):
         ret = torch.mean(torch.abs(valid_joint_rec - valid_joint_gt))
         return ret
 
-    def compute_3d_joint_loss(self, joint_rec, joint_gt):
-        ret = torch.sqrt(torch.sum((joint_rec - joint_gt)**2))
+    def compute_3d_joint_loss(self, joint_rec, joint_gt, valid):
+        #TODO
+
+        # joint_gt: [bs, 21, 3]
+        #ret = torch.sqrt(torch.sum((joint_rec - joint_gt)**2))
+        ret = (joint_rec - joint_gt)**2
+        ret = valid * ret
+        ret = torch.mean(ret)
         return ret
 
 
-    def compute_mask_loss(self, mesh2d, mask):
+    def compute_mask_loss(self, mesh2d, mask, valid):
         #TODO: check mask_loss
-        mesh2d = self.convert_vec_to_2d(mesh2d)
-        ret = torch.tensor(1.) - torch.mean(mask[mesh2d])
+        mesh2d = self.convert_vec_to_2d(mesh2d)  # [bs, 778, 2]
+        mesh2d = mesh2d.int()
+        batch_size = mesh2d.shape[0]
+        index0 = torch.arange(batch_size).reshape((batch_size, 1)).repeat(1, 778) # [bs, 778]
+        index1 = mesh2d[:,:,0]
+        index2 = mesh2d[:,:,1]
+        ret = mask[index0, index1, index2]  # [bs, 778]
+        ret = np.multiply(valid, ret)
+        ret = torch.tensor(1.) - torch.mean(ret)
         return ret
 
     def compute_param_reg_loss(self, vec):
@@ -88,7 +102,7 @@ class EncoderTrainer(nn.Module):
         ret = torch.mean(theta**2) + beta_weight * torch.mean(beta**2)
         return ret
 
-    def encoder_update(self, x, gt_2d, gt_3d, mask):
+    def encoder_update(self, x, gt_2d, gt_3d, mask, valid):
         assert not self.ispretrain, "the method can be only used in train mode"
 
         self.encoder_opt.zero_grad()
@@ -98,8 +112,8 @@ class EncoderTrainer(nn.Module):
         joint_2d, mesh_2d = x2d[:, :42], x2d[:, 42:]
         joint_3d, mesh_3d = x3d[:, :21, :], x3d[:, 21:, :]
         self.loss_2d = self.comupte_2d_joint_loss(joint_2d, gt_2d)
-        self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d)
-        self.loss_mask    = self.compute_mask_loss(mesh_2d, mask)
+        self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0])
+        self.loss_mask    = self.compute_mask_loss(mesh_2d, mask, valid[:, 1])
         self.loss_reg     = self.compute_param_reg_loss(param)
 
         w = self.weight
@@ -112,7 +126,7 @@ class EncoderTrainer(nn.Module):
         self.encoder_opt.step()
 
     @torch.no_grad()
-    def sample_train(self, x, gt_2d, gt_3d, mask):
+    def sample_train(self, x, gt_2d, gt_3d, mask, valid):
         assert not self.ispretrain, "the method can be only used in train mode"
 
         gt_2d, gt_3d, mask = torch.detach(gt_2d), torch.detach(gt_3d), torch.detach(mask)
@@ -121,8 +135,8 @@ class EncoderTrainer(nn.Module):
         joint_2d, mesh_2d = x2d[:, :42], x2d[:, 42 :]
         joint_3d, mesh_3d = x3d[:, :21, :], x3d[:, 21 :, :]
         self.loss_2d = self.comupte_2d_joint_loss(joint_2d, gt_2d)
-        self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d)
-        self.loss_mask = self.compute_mask_loss(mesh_2d, mask)
+        self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0])
+        self.loss_mask = self.compute_mask_loss(mesh_2d, mask, valid[:, 1])
         self.loss_reg = self.compute_param_reg_loss(param)
 
         w = self.weight

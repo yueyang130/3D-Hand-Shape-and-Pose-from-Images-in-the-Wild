@@ -213,25 +213,29 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
     return cnt
 
 def main():
-    train_outpath = "/home/lyf2/dataset/3dhand/dataset/train/image/"
-    test_outpath = "/home/lyf2/dataset/3dhand/dataset/test/image/"
-    train_newlabel_path = "/home/lyf2/dataset/3dhand/dataset/train/joints.json"
-    test_newlabel_path = "/home/lyf2/dataset/3dhand/dataset/test/joints.json"
+    train_outpath = "/home/lyf2/dataset/3dhand/dataset1/train/image/"
+    test_outpath = "/home/lyf2/dataset/3dhand/dataset1/test/image/"
 
-    if os.path.isdir(train_outpath):
-        shutil.rmtree(train_outpath)
-    os.makedirs(train_outpath)
-    if os.path.isdir(test_outpath):
-        shutil.rmtree(test_outpath)
-    os.makedirs(test_outpath)
+    train_newlabel_path = "/home/lyf2/dataset/3dhand/dataset1/train/joints.json"
+    test_newlabel_path = "/home/lyf2/dataset/3dhand/dataset1/test/joints.json"
+
+    # if os.path.isdir(train_outpath):
+    #     shutil.rmtree(train_outpath)
+
+    # if os.path.isdir(test_outpath):
+    #     shutil.rmtree(test_outpath)
+    if not os.path.exists(train_outpath):
+        os.makedirs(train_outpath)
+    if not os.path.exists(test_outpath):
+        os.makedirs(test_outpath)
 
     # trainset
     infor_dict = {'image' : []}
     cnt = 0
     # test the process use only 3 images
-    cnt = process_PANOPTIC(train_outpath, infor_dict, cnt, 10)
-    cnt = process_MPII(train_outpath, infor_dict, cnt, 5,  trainset=True)
-    cnt = process_stereo(train_outpath, infor_dict, cnt, 20)
+    cnt = process_PANOPTIC(train_outpath, infor_dict, cnt)
+    cnt = process_MPII(train_outpath, infor_dict, cnt,  trainset=True)
+    cnt = process_stereo(train_outpath, infor_dict, cnt)
     print('totally generate training images: %d'%cnt)
 
 
@@ -245,7 +249,7 @@ def main():
     infor_dict = {'image' : []}
     cnt = 0
     # test the process use only 3 images
-    cnt = process_MPII(test_outpath, infor_dict, cnt, 10, trainset=False)
+    cnt = process_MPII(test_outpath, infor_dict, cnt,  trainset=False)
     print('totally generate testing images: %d'%cnt)
 
 
@@ -253,6 +257,9 @@ def main():
     fjson = open(test_newlabel_path, 'w')
     json.dump(infor_dict, fjson)
     fjson.close()
+
+
+
 
 if __name__ == '__main__':
     main()

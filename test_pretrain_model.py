@@ -30,8 +30,8 @@ def sample(trainer, dataloader, batch_size, test_num):
     total_losses = np.zeros(5)
     msg = []
     with torch.no_grad() :
-        for imgs, gt_2d, gt_3d, mask in dataloader :
-            results, losses = trainer.sample_train(imgs, gt_2d, gt_3d, mask)
+        for imgs, gt_2d, gt_3d, mask, valid_3d in dataloader :
+            results, losses = trainer.sample_train(imgs, gt_2d, gt_3d, mask, valid_3d)
             total_losses += losses
             cnt_batch += 1
             num_data = cnt_batch * batch_size
