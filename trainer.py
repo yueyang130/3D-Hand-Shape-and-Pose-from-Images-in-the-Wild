@@ -56,46 +56,60 @@ class EncoderTrainer(nn.Module):
         u = vec[:, 0::2].unsqueeze(2)  # (bs, 21, 1)
         v = vec[:, 1::2].unsqueeze(2)
         uv = torch.cat([u,v], dim=2)
-        # TODO: test uv shape is [bs, 21, 2] or [bs, 778, 2]
         return uv
 
 
     def comupte_2d_joint_loss(self, joint_rec, joint_gt):
-        # TODO:test
         joint_rec = self.convert_vec_to_2d(joint_rec)
-        valid_idx = (joint_gt[:, :, 2] == 1)
-        valid_idx = torch.cat([valid_idx, valid_idx], dim=2)
+        valid_idx = (joint_gt[:, :, 2] == 1)  # (bs, 21)
+        valid_idx = valid_idx.unsqueeze(dim=2).repeat((1,1,2))
         valid_joint_rec = joint_rec[valid_idx]
         valid_joint_gt  = joint_gt[:,:,:2][valid_idx]
         ret = torch.mean(torch.abs(valid_joint_rec - valid_joint_gt))
         return ret
 
     def compute_3d_joint_loss(self, joint_rec, joint_gt, valid):
-        #TODO
-
         # joint_gt: [bs, 21, 3]
         #ret = torch.sqrt(torch.sum((joint_rec - joint_gt)**2))
         ret = (joint_rec - joint_gt)**2
-        ret = valid * ret
-        ret = torch.mean(ret)
+        valid = valid.unsqueeze(dim=1).unsqueeze(2)
+        ret = torch.mean(valid * ret)
         return ret
 
 
     def compute_mask_loss(self, mesh2d, mask, valid):
         #TODO: check mask_loss
+
+        # for debug
+        # mesh2d = mesh2d.cpu()
+        # mask = mask.cpu()
+        # valid = valid.cpu()
+
         mesh2d = self.convert_vec_to_2d(mesh2d)  # [bs, 778, 2]
-        mesh2d = mesh2d.int()
+        mesh2d = mesh2d.type(torch.int64)
+
+        # mesh may out of image
+        size = mask.shape[1]
+        mesh2d[mesh2d < 0] = 0
+        mesh2d[mesh2d >= size] = size - 1
+
         batch_size = mesh2d.shape[0]
-        index0 = torch.arange(batch_size).reshape((batch_size, 1)).repeat(1, 778) # [bs, 778]
-        index1 = mesh2d[:,:,0]
-        index2 = mesh2d[:,:,1]
+        index0 = torch.arange(batch_size).reshape((batch_size, 1)).repeat(1, 778).type(torch.int64) # [bs, 778]
+        # u means width; v means height
+        #index1 = mesh2d[:,:,0]
+        #index2 = mesh2d[:,:,1]
+        index1 = mesh2d[:,:,1]
+        index2 = mesh2d[:,:,0]
         ret = mask[index0, index1, index2]  # [bs, 778]
-        ret = np.multiply(valid, ret)
-        ret = torch.tensor(1.) - torch.mean(ret)
+        valid = valid.unsqueeze(1)
+
+
+        ret = valid * ret
+        ret = torch.tensor(1.) - torch.mean(ret.type(torch.float32))
         return ret
 
     def compute_param_reg_loss(self, vec):
-        assert vec.dim[1] == 22
+        assert vec.shape[1] == 22
         beta_weight = 10**4
         beta = vec[:, -10:]
         theta = vec[:, -16:-10]
@@ -106,6 +120,7 @@ class EncoderTrainer(nn.Module):
         assert not self.ispretrain, "the method can be only used in train mode"
 
         self.encoder_opt.zero_grad()
+        x, valid = torch.detach(x), torch.detach(valid)
         gt_2d, gt_3d, mask = torch.detach(gt_2d), torch.detach(gt_3d), torch.detach(mask)
         # forward
         x2d, x3d, param = self.model(x)
@@ -129,6 +144,7 @@ class EncoderTrainer(nn.Module):
     def sample_train(self, x, gt_2d, gt_3d, mask, valid):
         assert not self.ispretrain, "the method can be only used in train mode"
 
+        x, valid = torch.detach(x), torch.detach(valid)
         gt_2d, gt_3d, mask = torch.detach(gt_2d), torch.detach(gt_3d), torch.detach(mask)
         # forward
         x2d, x3d, param = self.model(x)
@@ -144,8 +160,14 @@ class EncoderTrainer(nn.Module):
                           w.w_3d * self.loss_3d + \
                           w.w_mask * self.loss_mask + \
                           w.w_reg * self.loss_reg
-        return [joint_2d, mesh_2d, joint_3d, mesh_3d], \
-               np.array([self.train_loss, self.loss_2d, self.loss_3d, self.loss_mask, self.loss_reg])
+        losses = np.array([self.train_loss.cpu().numpy(),
+                           self.loss_2d.cpu().numpy(),
+                           self.loss_3d.cpu().numpy(),
+                           self.loss_mask.cpu().numpy(),
+                           self.loss_reg.cpu().numpy()
+                           ])
+        return [joint_2d, mesh_2d, joint_3d, mesh_3d], losses
+
 
 
     def encoder_pretrain_update(self, x, gt_vec):

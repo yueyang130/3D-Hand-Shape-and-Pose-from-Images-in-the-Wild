@@ -18,7 +18,7 @@ def show_mask_on_img(img, mask,
     mask_on_img[blue_mask > 0] = 255
     misc.imsave(img_pth, mask_on_img)
 
-    a = 1
+
 
 
 

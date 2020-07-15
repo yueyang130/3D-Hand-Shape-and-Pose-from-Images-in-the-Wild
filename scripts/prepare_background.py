@@ -22,6 +22,7 @@ def get_img_path_list(dirpath):
             if is_image_file(fname):
                 img_pth = os.path.join(dirpath, fname)
                 img_pth_list.append(img_pth)
+    return img_pth_list
 
 def get_file_list(dirpath, key = None):
     assert os.path.isdir(dirpath)

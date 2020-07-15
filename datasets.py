@@ -104,23 +104,24 @@ class HandTrainSet(data.Dataset):
         end_u = img.shape[1] + start_u - crop_len
         cropped_img = img[start_v: end_v+1, start_u: end_u+1, : ]
         cropped_mask = mask[start_v: end_v+1, start_u: end_u+1]
-        cropped_pts = np.concatenate(pts[:,0:1] - start_u, pts[:,1:2] - start_v, pts[:, 2:], axis=1)
+        cropped_pts = np.concatenate([pts[:,0:1] - start_u, pts[:,1:2] - start_v, pts[:, 2:]], axis=1)
 
         resz = iaa.Resize({'height' : 256, 'width' : 256}, interpolation='linear')
 
-        imask, resized_pts = resz.augment(image=[cropped_img, cropped_mask], keypoints=[cropped_pts[:, :2]])
-        resized_img = imask[0]
-        resized_mask = imask[1]
+        resized_img, resized_pts = resz.augment(image=cropped_img, keypoints=[cropped_pts[:, :2]])
+        resized_mask = resz.augment(image=cropped_mask)
+
         resized_pts = resized_pts[0]
         resized_pts = np.concatenate([resized_pts, cropped_pts[:, 2 :]], axis=1)
 
+        # guassian noise
         resized_img = resized_img + np.random.randn(256, 256, 3)
         resized_img[resized_img > 255] = 255
         resized_img[resized_img < 0] = 0
 
-        #TODO: test
-        show_pts_on_img(resized_img, resized_pts)
-        show_mask_on_img(resized_img, resized_mask * 255)
+        # test
+        # show_pts_on_img(resized_img, resized_pts)
+        # show_mask_on_img(resized_img, resized_mask * 255)
 
         return resized_img, resized_mask, resized_pts
 
@@ -151,10 +152,12 @@ class HandTrainSet(data.Dataset):
         #input_img = getItem(self.data_dir, index, self.img_transform)
         valid = np.array([1, 1]) # the validility of 3d joint and mask
         img = Image.open(os.path.join(self.img_dir, '%08d.png' % index)).convert('RGB')
+        img = np.asarray(img)
         try:
             mask = Image.open(os.path.join(self.mask_dir, '%08d.png' % index))
+            mask = np.asarray(mask)
         except IOError:
-            mask = np.zeros((256, 256, 3))
+            mask = np.zeros((256, 256), dtype=np.uint8)
             valid[1] = 0
             print('mask %08d not found'%index)
 
@@ -168,7 +171,10 @@ class HandTrainSet(data.Dataset):
         # data augmentaion and resize
         img, mask, joint_2d = self.data_augmentation(img, mask, joint_2d)
         # transform
-        img = ToTensor()(img)
+        img = np.transpose(img/255., axes=(2,0,1)).astype(np.float32)
+        joint_2d = joint_2d.astype(np.float32)
+        joint_3d = joint_2d.astype(np.float32)
+
         return img, joint_2d, joint_3d, mask, valid
 
 

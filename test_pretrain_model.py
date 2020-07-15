@@ -28,9 +28,13 @@ def pre_sample(pretrainer, dataloader, batch_size, test_num):
 def sample(trainer, dataloader, batch_size, test_num):
     cnt_batch = 0
     total_losses = np.zeros(5)
-    msg = []
     with torch.no_grad() :
         for imgs, gt_2d, gt_3d, mask, valid_3d in dataloader :
+            imgs = imgs.cuda().detach()
+            gt_2d = gt_2d.cuda().detach()
+            gt_3d = gt_3d.cuda().detach()
+            mask = mask.cuda().detach()
+            valid_3d = valid_3d.cuda().detach()
             results, losses = trainer.sample_train(imgs, gt_2d, gt_3d, mask, valid_3d)
             total_losses += losses
             cnt_batch += 1

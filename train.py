@@ -12,6 +12,7 @@ from test_pretrain_model import sample
 import sys
 import pickle
 import matplotlib.pyplot as plt
+import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str,
@@ -36,14 +37,15 @@ trainloader, testloader = utils.get_data_loader(config, isPretrain=False)
 model_name = os.path.splitext(os.path.basename(opts.config))[0]
 model_dir = os.path.join(config['output_pth'], model_name)
 log_dir, checkpoint_dir, image_dir, test_dir = utils.prepare_folder_strcutre(model_dir)
-train_writer = tensorboardX.SummaryWritter(log_dir)
-loss_log = [[],[],[]]
+train_writer = tensorboardX.SummaryWriter(log_dir)
+
 
 # start train
 if opts.resume:
     iterations = trainer.resume(checkpoint_dir, config)
     loss_log = utils.resume_loss_log(test_dir, iterations)
 else:
+    loss_log = [[], [], []]
     iterations = 0
 
 while True:
@@ -55,10 +57,11 @@ while True:
         mask   = mask.cuda().detach()
         valid_3d = valid_3d.cuda().detach()
 
-        with utils.Timer("Elapsed time in update: %f"):
-            trainer.update_lr()
-            trainer.encoder_update(images, gt_2d, gt_3d, mask, valid_3d)
-            torch.cuda.synchronize()  # the code synchronize gpu and cpu process , ensuring the accuracy of time measure
+        #with utils.Timer("Elapsed time in update: %f"):
+        trainer.encoder_update(images, gt_2d, gt_3d, mask, valid_3d)
+        trainer.update_lr()
+        torch.cuda.synchronize()  # the code synchronize gpu and cpu process , ensuring the accuracy of time measure
+
 
         # Dump training stats in log file
         if (iterations + 1) % config['print_loss_iter'] == 0 :
@@ -83,12 +86,16 @@ while True:
         if (iterations + 1) % config['show_iter'] == 0 :
             losses = ['total_loss' ,'2d_loss', '3d_loss', 'mask_loss', 'reg_loss']
             for i, loss in enumerate(losses):
+                train_loss = np.array(loss_log[1])
+                test_loss = np.array(loss_log[2])
                 if i == 0:
-                   plt.subplot(311, loss_log[0], loss_log[1][i], '.-', label='train_loss')
-                   plt.subplot(311, loss_log[0], loss_log[2][i], '.-', label='test_loss')
+                   plt.subplot(311)
+                   plt.plot(loss_log[0], train_loss[:,i].tolist(), '.-', label='train_loss')
+                   plt.plot(loss_log[0], test_loss[:,i].tolist(), '.-', label='test_loss')
                 else:
-                    plt.subplot(323 + i, loss_log[0], loss_log[1][i], '.-', label='train_loss')
-                    plt.subplot(323 + i, loss_log[0], loss_log[2][i], '.-', label='test_loss')
+                    plt.subplot(322+i)
+                    plt.plot(loss_log[0], train_loss[:,i].tolist(), '.-', label='train_loss')
+                    plt.plot(loss_log[0], test_loss[:,i].tolist(), '.-', label='test_loss')
                 plt.xlabel('iterations')
                 plt.ylabel(loss)
                 plt.legend()  # 加了这一句才显示label
