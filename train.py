@@ -13,6 +13,7 @@ import sys
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
+import tester
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str,
@@ -20,7 +21,10 @@ parser.add_argument('--config', type=str,
 parser.add_argument('--resume', action='store_true')
 parser.add_argument('--version', type=int, default=None, help='The iteraiton of the model that you want to resume from')
 parser.add_argument('--gpu_id', type=int, default=0, help='gpu_id')
+parser.add_argument("--lr", type=float,default=None)
 opts = parser.parse_args()
+
+
 
 cudnn.benchmark = True  # the code can accelerate the training usually
 torch.cuda.set_device(opts.gpu_id)
@@ -45,9 +49,14 @@ train_writer = tensorboardX.SummaryWriter(log_dir)
 if opts.resume:
     iterations = trainer.resume(checkpoint_dir, config, version=opts.version)
     loss_log = utils.resume_loss_log(test_dir, iterations)
+    iterations -= 1
 else:
     loss_log = [[], [], []]
     iterations = 0
+
+# set lr
+if opts.lr is not None:
+    trainer.set_lr(opts.lr)
 
 while True:
     for images, gt_2d, gt_3d, mask, valid_3d  in trainloader:
@@ -72,6 +81,14 @@ while True:
 
         # test
         if iterations == 0 or (iterations + 1) % config['test_iter'] == 0:
+            trainer.eval()
+            img_iter_dir = os.path.join(image_dir, '%08d' % iterations)
+            if not os.path.exists(img_iter_dir) :
+                os.makedirs(img_iter_dir)
+            tester.test(config['input_option'], trainer.model, img_iter_dir)
+            trainer.train()
+
+
             new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=False)
             train_num, train_loss = sample(trainer, new_trainloader, config['batch_size'], config['test_num'])
             test_num, test_loss = sample(trainer, new_testLoader, config['batch_size'], config['test_num'])
@@ -86,17 +103,19 @@ while True:
         # save the test result
         if (iterations + 1) % config['show_iter'] == 0 :
             losses = ['total_loss' ,'2d_loss', '3d_loss', 'mask_loss', 'reg_loss']
+            # do not show iteration = 1
+            iters = loss_log[0][1 :]
+            train_loss = np.array(loss_log[1])[1:]
+            test_loss = np.array(loss_log[2])[1:]
             for i, loss in enumerate(losses):
-                train_loss = np.array(loss_log[1])
-                test_loss = np.array(loss_log[2])
                 if i == 0:
                    plt.subplot(311)
-                   plt.plot(loss_log[0], train_loss[:,i].tolist(), '.-', label='train_loss')
-                   plt.plot(loss_log[0], test_loss[:,i].tolist(), '.-', label='test_loss')
+                   plt.plot(iters, train_loss[:,i].tolist(), '.-', label='train_loss')
+                   plt.plot(iters, test_loss[:,i].tolist(), '.-', label='test_loss')
                 else:
                     plt.subplot(322+i)
-                    plt.plot(loss_log[0], train_loss[:,i].tolist(), '.-', label='train_loss')
-                    plt.plot(loss_log[0], test_loss[:,i].tolist(), '.-', label='test_loss')
+                    plt.plot(iters, train_loss[:,i].tolist(), '.-', label='train_loss')
+                    plt.plot(iters, test_loss[:,i].tolist(), '.-', label='test_loss')
                 plt.xlabel('iterations')
                 plt.ylabel(loss)
                 plt.legend()  # 加了这一句才显示label

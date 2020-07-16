@@ -10,6 +10,7 @@ import sys
 from test_pretrain_model import pre_sample
 import matplotlib.pyplot as plt
 import pickle
+import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str,
@@ -66,7 +67,7 @@ while True:
             utils.write_loss(iterations, pretrainer, train_writer)
 
         # test
-        if (iterations + 1) % config['test_iter'] == 0:
+        if iterations == 0 or (iterations + 1) % config['test_iter'] == 0:
             with torch.no_grad():
 
                 new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=True)
@@ -82,12 +83,19 @@ while True:
 
         # save the test result
         if (iterations + 1) % config['show_iter'] == 0 :
-            plt.plot(loss_log[0], loss_log[1], '.-', label='train_loss')
-            plt.plot(loss_log[0], loss_log[2], '.-', label='test_loss')
-            plt.xlabel('iterations')
-            plt.ylabel('vec_rec_loss')
-            plt.legend()  # 加了这一句才显示label
-            plt.savefig(os.path.join(test_dir, 'iter_%d_loss.png'%(iterations + 1)))
+            losses = ['total_loss', 'pose_loss', 'beta_loss', 'r_loss', 't_loss','s_loss']
+            # do not show iteration = 1
+            iters = loss_log[0][1 :]
+            train_loss = np.array(loss_log[1])[1 :]
+            test_loss = np.array(loss_log[2])[1 :]
+            for i, loss in enumerate(losses) :
+                plt.subplot(611 + i)
+                plt.plot(iters, train_loss[:, i].tolist(), '.-', label='train_loss')
+                plt.plot(iters, test_loss[:, i].tolist(), '.-', label='test_loss')
+                plt.xlabel('iterations')
+                plt.ylabel(loss)
+                plt.legend()  # 加了这一句才显示label
+            plt.savefig(os.path.join(test_dir, 'iter_%d_loss.png' % (iterations + 1)))
             plt.close()
 
         # Save network weights

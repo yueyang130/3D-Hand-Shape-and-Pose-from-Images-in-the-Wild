@@ -41,11 +41,7 @@ class EncoderTrainer(nn.Module):
 
         # set loss fn
         if self.ispretrain:
-            self.get_param_recon_criterion = get_criterion(params['pretrain_loss_fn'])
-        else :
-            self.joint_2d_criterion = get_criterion('L1')
-            self.joint_3d_criterion = get_criterion('L2')
-
+            self.param_recon_criterion = get_criterion(params['pretrain_loss_fn'])
 
         # Network weight initialization
         self.model.apply(weights_init(params.init))
@@ -162,6 +158,7 @@ class EncoderTrainer(nn.Module):
                           w.w_3d * self.loss_3d + \
                           w.w_mask * self.loss_mask + \
                           w.w_reg * self.loss_reg
+
         losses = np.array([self.train_loss.cpu().numpy(),
                            self.loss_2d.cpu().numpy(),
                            self.loss_3d.cpu().numpy(),
@@ -170,8 +167,6 @@ class EncoderTrainer(nn.Module):
                            ])
         return [joint_2d, mesh_2d, joint_3d, mesh_3d], losses
 
-
-
     def encoder_pretrain_update(self, x, gt_vec):
         assert self.ispretrain, "the method can be only used in pretrain mode"
 
@@ -179,10 +174,22 @@ class EncoderTrainer(nn.Module):
         # encode
         param_encoded = self.model(x)
         # get groundtruth
-        assert gt_vec.shape == param_encoded.shape
+        assert gt_vec.shape == param_encoded.shape   # (bs,22)
         # loss
         param_gt = torch.detach(gt_vec)
-        self.vec_rec_loss = self.get_param_recon_criterion(param_encoded, param_gt)
+        self.loss_pose = self.param_recon_criterion(param_encoded[:,:6], param_gt[:,:6])
+        self.loss_beta = self.param_recon_criterion(param_encoded[:,6:16], param_gt[:,6:16])
+        self.loss_r    = self.param_recon_criterion(param_encoded[:,16:19], param_gt[:,16:19])
+        self.loss_t    = self.param_recon_criterion(param_encoded[:,19:21], param_gt[:,19:21])
+        self.loss_s    = self.param_recon_criterion(param_encoded[:,21], param_gt[:,21])
+
+        w = self.weight
+        self.vec_rec_loss = w.w_L1_pose * self.loss_pose + \
+                            w.w_L1_beta * self.loss_beta + \
+                            w.w_L1_r * self.loss_r + \
+                            w.w_L1_t * self.loss_t + \
+                            w.w_L1_s * self.loss_s
+
         self.vec_rec_loss.backward()
         self.encoder_opt.step()
 
@@ -193,11 +200,35 @@ class EncoderTrainer(nn.Module):
         # encode
         param_encoded = self.model(x)
         # get groundtruth
-        assert gt_vec.shape == param_encoded.shape
+        assert gt_vec.shape == param_encoded.shape   # (bs,22)
         # loss
         param_gt = torch.detach(gt_vec)
-        self.vec_rec_loss = self.get_param_recon_criterion(param_encoded, param_gt)
-        return self.vec_rec_loss
+        self.loss_pose = self.param_recon_criterion(param_encoded[:,:6], param_gt[:,:6])
+        self.loss_beta = self.param_recon_criterion(param_encoded[:,6:16], param_gt[:,6:16])
+        self.loss_r    = self.param_recon_criterion(param_encoded[:,16:19], param_gt[:,16:19])
+        self.loss_t    = self.param_recon_criterion(param_encoded[:,19:21], param_gt[:,19:21])
+        self.loss_s    = self.param_recon_criterion(param_encoded[:,21], param_gt[:,21])
+
+        w = self.weight
+        self.vec_rec_loss = w.w_L1_pose * self.loss_pose + \
+                            w.w_L1_beta * self.loss_beta + \
+                            w.w_L1_r * self.loss_r + \
+                            w.w_L1_t * self.loss_t + \
+                            w.w_L1_s * self.loss_s
+
+        losses = np.array([self.vec_rec_loss.cpu().numpy(),
+                           self.loss_pose.cpu().numpy(),
+                           self.loss_beta.cpu().numpy(),
+                           self.loss_r.cpu().numpy(),
+                           self.loss_t.cpu().numpy(),
+                           self.loss_s.cpu().numpy()
+                           ])
+
+        return losses
+
+    def set_lr(self, lr):
+        for param_group in self.encoder_opt.param_groups :
+            param_group['lr'] = lr
 
 
     def update_lr(self):
@@ -205,8 +236,11 @@ class EncoderTrainer(nn.Module):
             self.encoder_scheduler.step()
 
     def print_losses(self):
+        print("lr is %.7f" % self.encoder_opt.state_dict()['param_groups'][0]['lr'])
         if self.ispretrain:
-            print("pretrain rec_param loss: %.4f" % (__ee__(self.vec_rec_loss)))
+            print(("total loss: %.4f | " + "pose loss: %.4f | " + "beta loss: %.4f | " +
+                  "rotation loss: %.4f | translation loss: %.4f | scale loss : %.4f")
+                    %(self.vec_rec_loss, self.loss_pose, self.loss_beta, self.loss_r, self.loss_t, self.loss_s))
         else:
             print(("total loss: %.4f | " + "2d loss: %.4f | " + "3d loss: %.4f | " +
                   "mask loss: %.4f | reg loss: %.4f")

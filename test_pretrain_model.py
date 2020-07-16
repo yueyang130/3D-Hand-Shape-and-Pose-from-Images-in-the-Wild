@@ -13,17 +13,18 @@ import sys
 
 def pre_sample(pretrainer, dataloader, batch_size, test_num):
     cnt_batch = 0
-    vec_rec_loss = 0
+    total_losses = np.zeros(6)
     msg = []
     with torch.no_grad() :
         for imgs, gt_vecs in dataloader :
             imgs = imgs.cuda().detach()
             gt_vecs = gt_vecs.cuda().detach()
-            vec_rec_loss += pretrainer.sample_pretrain(imgs, gt_vecs)
+            losses = pretrainer.sample_pretrain(imgs, gt_vecs)
+            total_losses += losses
             cnt_batch += 1
             num_data = cnt_batch * batch_size
             if num_data >= test_num : break
-    return num_data, vec_rec_loss/cnt_batch
+    return num_data, total_losses/cnt_batch
 
 def sample(trainer, dataloader, batch_size, test_num):
     cnt_batch = 0

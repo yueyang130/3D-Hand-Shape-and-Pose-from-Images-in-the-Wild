@@ -19,15 +19,15 @@ from prepare_background import get_img_path_list
 #        self.vc = color
 
 # total number of synthetic image
-SYNTHETIC_NUM = 5000
+SYNTHETIC_NUM = 1000
 # total number of bg images
 model_pth = '/home/lyf/yy_ws/code/manopth/manopth/mano/models/MANO_RIGHT.pkl'
-bg_pth    = 'data/backgrounds'
+bg_pth    = '/home/lyf/yy_ws/code/3dhand/data/backgrounds/'
 output_path = '/home/lyf2/dataset/3dhand/syn/raw/'
 
-if os.path.exists(output_path):
-    shutil.rmtree(output_path)
-os.makedirs(output_path)
+# if os.path.exists(output_path):
+#     shutil.rmtree(output_path)
+# os.makedirs(output_path)
 
 
 ls = sorted(get_img_path_list(bg_pth))
@@ -38,7 +38,7 @@ m = load_model(model_pth, ncomps=6, flat_hand_mean=False)
 # load all colors 
 colors = []
 for i in xrange(0,27):
-    f = open('data/meshes_colored/%d.obj'%i)
+    f = open('/home/lyf/yy_ws/code/3dhand/data/meshes_colored/%d.obj'%i)
     cont = f.readlines() 
     f.close() 
 
@@ -151,13 +151,20 @@ for i in xrange(0,SYNTHETIC_NUM):
     # hand and view gt parameters
     gtruth.append(np.concatenate([np.array([1.,ss,tu,tv]),rot,m.pose[3:],m.betas],0))
 
-with open(os.path.join(output_path, 'labels.pickle'),'wb') as fo:
-    pickle.dump(joints,fo,protocol=pickle.HIGHEST_PROTOCOL) 
+# with open(os.path.join(output_path, 'labels.pickle'),'wb') as fo:
+#     pickle.dump(joints,fo,protocol=pickle.HIGHEST_PROTOCOL)
+#
+# with open(os.path.join(output_path, 'gt.pickle'),'wb') as fo:
+#     pickle.dump(gtruth,fo,protocol=pickle.HIGHEST_PROTOCOL)
 
-with open(os.path.join(output_path, 'gt.pickle'),'wb') as fo:
-    pickle.dump(gtruth,fo,protocol=pickle.HIGHEST_PROTOCOL) 
 
-
+gtruth = np.array(gtruth)
+s = gtruth[:,1]
+tu = gtruth[:,2]
+tv = gtruth[:,3]
+rot = gtruth[:, 4:7]
+pose = gtruth[:, 7:13]
+beta = gtruth[:, 13:]
 
 
 
