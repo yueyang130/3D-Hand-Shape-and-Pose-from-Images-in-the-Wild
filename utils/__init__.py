@@ -182,6 +182,9 @@ def parse_labelfile(label_mode, label_ext, label_pth, joint_keyname=None, n_imag
 
 def resume_loss_log(test_dir, version):
     if version == 0: return [[], [], []]
-    with open(os.path.join(test_dir, 'iter_%d_loss.pickle'%version), 'r') as fo:
-        return pickle.load(fo)
+    try:
+        with open(os.path.join(test_dir, 'iter_%d_loss.pickle'%version), 'r') as fo:
+            return pickle.load(fo)
+    except IOError:
+        return [[],[],[]]
 

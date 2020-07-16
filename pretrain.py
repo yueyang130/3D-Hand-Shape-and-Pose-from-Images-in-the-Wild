@@ -18,6 +18,7 @@ parser.add_argument('--config', type=str,
 parser.add_argument('--resume', action='store_true')
 parser.add_argument('--version', type=int, default=None, help='The iteraiton of the model that you want to resume from')
 parser.add_argument('--gpu_id', type=int, default=0, help='gpu_id')
+parser.add_argument("--lr", type=float,default=None)
 opts = parser.parse_args()
 
 cudnn.benchmark = True  # the code can accelerate the training usually
@@ -47,7 +48,9 @@ if opts.resume:
 else:
     iterations = 0
 
-
+# set lr
+if opts.lr is not None:
+    pretrainer.set_lr(opts.lr)
 
 while True:
     for images, gt_vecs in trainloader:
@@ -56,8 +59,8 @@ while True:
         gt_vecs = gt_vecs.cuda().detach()
 
         #with utils.Timer("Elapsed time in update: %f"):
-        pretrainer.update_lr()
         pretrainer.encoder_pretrain_update(images, gt_vecs)
+        pretrainer.update_lr()
         torch.cuda.synchronize()  # the code synchronize gpu and cpu process , ensuring the accuracy of time measure
 
         # Dump training stats in log file

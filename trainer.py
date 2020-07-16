@@ -177,11 +177,12 @@ class EncoderTrainer(nn.Module):
         assert gt_vec.shape == param_encoded.shape   # (bs,22)
         # loss
         param_gt = torch.detach(gt_vec)
-        self.loss_pose = self.param_recon_criterion(param_encoded[:,:6], param_gt[:,:6])
-        self.loss_beta = self.param_recon_criterion(param_encoded[:,6:16], param_gt[:,6:16])
-        self.loss_r    = self.param_recon_criterion(param_encoded[:,16:19], param_gt[:,16:19])
-        self.loss_t    = self.param_recon_criterion(param_encoded[:,19:21], param_gt[:,19:21])
-        self.loss_s    = self.param_recon_criterion(param_encoded[:,21], param_gt[:,21])
+
+        self.loss_s    = self.param_recon_criterion(param_encoded[:,0], param_gt[:,0])
+        self.loss_t    = self.param_recon_criterion(param_encoded[:,1:3], param_gt[:,1:3])
+        self.loss_r    = self.param_recon_criterion(param_encoded[:,3:6], param_gt[:,3:6])
+        self.loss_pose = self.param_recon_criterion(param_encoded[:,6:12], param_gt[:, 6:12])
+        self.loss_beta = self.param_recon_criterion(param_encoded[:,12:], param_gt[:, 12:])
 
         w = self.weight
         self.vec_rec_loss = w.w_L1_pose * self.loss_pose + \
@@ -203,11 +204,12 @@ class EncoderTrainer(nn.Module):
         assert gt_vec.shape == param_encoded.shape   # (bs,22)
         # loss
         param_gt = torch.detach(gt_vec)
-        self.loss_pose = self.param_recon_criterion(param_encoded[:,:6], param_gt[:,:6])
-        self.loss_beta = self.param_recon_criterion(param_encoded[:,6:16], param_gt[:,6:16])
-        self.loss_r    = self.param_recon_criterion(param_encoded[:,16:19], param_gt[:,16:19])
-        self.loss_t    = self.param_recon_criterion(param_encoded[:,19:21], param_gt[:,19:21])
-        self.loss_s    = self.param_recon_criterion(param_encoded[:,21], param_gt[:,21])
+        self.loss_s    = self.param_recon_criterion(param_encoded[:,0], param_gt[:,0])
+        self.loss_t    = self.param_recon_criterion(param_encoded[:,1:3], param_gt[:,1:3])
+        self.loss_r    = self.param_recon_criterion(param_encoded[:,3:6], param_gt[:,3:6])
+        self.loss_pose = self.param_recon_criterion(param_encoded[:,6:12], param_gt[:, 6:12])
+        self.loss_beta = self.param_recon_criterion(param_encoded[:,12:], param_gt[:, 12:])
+
 
         w = self.weight
         self.vec_rec_loss = w.w_L1_pose * self.loss_pose + \

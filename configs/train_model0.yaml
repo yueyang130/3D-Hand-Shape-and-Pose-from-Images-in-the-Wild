@@ -21,22 +21,10 @@ lr_policy: step               # learning rate scheduler
 step_size: 100000             # how often to decay learning rate
 gamma: 0.5                    # how much to decay learning rate
 
-
-
-# model options
-pretrain_loss_fn: L1          # vector reconstruction loss fn [L1/L2]
-
-w_L1_pose: 300                    # the weight of pose loss
-w_L1_beta: 30000                     # the weight of shape loss
-w_L1_r: 300                       # the weight of rotation loss
-w_L1_t: 3                       # the weight of translation loss
-w_L1_s: 1                       # the weight of scale loss
-
-w_L2_pose: 1                    # the weight of pose loss
-w_L2_beta:                      # the weight of shape loss
-w_L2_r: 0                       # the weight of rotation loss
-w_L2_t: 1                       # the weight of translation loss
-w_L2_s: 1                       # the weight of scale loss
+w_2d: 1                   # the weight of 2d loss
+w_3d: 100                 # the weight of 3d loss
+w_mask: 0                 # the weight of mask loss
+w_reg:  1                 # the weight of regulization loss
 
 
 # data options
