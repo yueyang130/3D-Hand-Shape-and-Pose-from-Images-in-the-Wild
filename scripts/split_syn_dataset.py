@@ -9,7 +9,7 @@ gt_pth = '/home/lyf2/dataset/3dhand/syn/raw/gt.pickle'
 n_image = len(get_img_path_list(img_dir))
 print('total number of iamges is %d'%n_image)
 
-TESTSET_SZIE = 1000
+TESTSET_SZIE = 2000
 TRAINSET_SZIE = n_image - TESTSET_SZIE
 
 out_dir = img_dir + '_split'

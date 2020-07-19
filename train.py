@@ -82,7 +82,7 @@ while True:
         # test
         if iterations == 0 or (iterations + 1) % config['test_iter'] == 0:
             trainer.eval()
-            img_iter_dir = os.path.join(image_dir, '%08d' % iterations)
+            img_iter_dir = os.path.join(image_dir, '%08d' % (iterations+1))
             if not os.path.exists(img_iter_dir) :
                 os.makedirs(img_iter_dir)
             tester.test(config['input_option'], trainer.model, img_iter_dir)
@@ -110,12 +110,12 @@ while True:
             for i, loss in enumerate(losses):
                 if i == 0:
                    plt.subplot(311)
-                   plt.plot(iters, train_loss[:,i].tolist(), '.-', label='train_loss')
-                   plt.plot(iters, test_loss[:,i].tolist(), '.-', label='test_loss')
+                   plt.plot(iters, train_loss[:,i].tolist(), ',-', label='train_loss')
+                   plt.plot(iters, test_loss[:,i].tolist(), ',-', label='test_loss')
                 else:
                     plt.subplot(322+i)
-                    plt.plot(iters, train_loss[:,i].tolist(), '.-', label='train_loss')
-                    plt.plot(iters, test_loss[:,i].tolist(), '.-', label='test_loss')
+                    plt.plot(iters, train_loss[:,i].tolist(), ',-', label='train_loss')
+                    plt.plot(iters, test_loss[:,i].tolist(), ',-', label='test_loss')
                 plt.xlabel('iterations')
                 plt.ylabel(loss)
                 plt.legend()  # 加了这一句才显示label

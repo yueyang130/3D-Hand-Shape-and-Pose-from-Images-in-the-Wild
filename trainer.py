@@ -80,30 +80,31 @@ class EncoderTrainer(nn.Module):
         # mesh2d = mesh2d.cpu()
         # mask = mask.cpu()
         # valid = valid.cpu()
+        bs = mesh2d.shape[0]
 
         mesh2d = self.convert_vec_to_2d(mesh2d)  # [bs, 778, 2]
-        mesh2d = mesh2d.type(torch.int64)
-        #mesh2d = mesh2d.round()
+        mesh2d = mesh2d.unsqueeze(1)
+
+        # u means width; v means height
+        new_mesh2d = torch.cat([mesh2d[:,:,:,1:2], mesh2d[:,:,:,0:1]], dim=3)
 
 
         # mesh may out of image
         size = mask.shape[1]
-        mesh2d[mesh2d < 0] = 0
-        mesh2d[mesh2d >= size] = size - 1
+        new_mesh2d[new_mesh2d < 0] = 0
+        new_mesh2d[new_mesh2d >= size] = size - 1
+        # normalized to [-1,1]
+        new_mesh2d = new_mesh2d / size * 2 - 1  # [bs, 1, 778, 2]
 
-        batch_size = mesh2d.shape[0]
-        index0 = torch.arange(batch_size).reshape((batch_size, 1)).repeat(1, 778).type(torch.int64) # [bs, 778]
-        # u means width; v means height
-        #index1 = mesh2d[:,:,0]
-        #index2 = mesh2d[:,:,1]
-        index1 = mesh2d[:,:,1]
-        index2 = mesh2d[:,:,0]
-        ret = mask[index0, index1, index2]  # [bs, 778]
+        mask = mask.unsqueeze(1).float()   # [bs, 1, H, W]
 
-        bs = valid.shape[0]
+        ret = torch.nn.functional.grid_sample(mask, new_mesh2d)  # [bs, 1, 1, 778]
+        ret = ret.squeeze(1).squeeze(1)
+
         valid_index = torch.arange(bs)[valid == 1]
         ret = ret[valid_index]
-        ret = torch.tensor(1.) - torch.mean(ret.type(torch.float32))
+        #ret = torch.tensor(1.) - torch.mean(ret)
+        ret = torch.tensor(1.).cuda() - torch.mean(ret)
         return ret
 
     def compute_param_reg_loss(self, vec):
@@ -271,8 +272,11 @@ class EncoderTrainer(nn.Module):
         iterations = int(model_name[-12:-4])
         if version is not None: assert version == iterations
 
-        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer.pth'))
-        self.encoder_opt.load_state_dict(state_dict)
+        try:
+            state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer.pth'))
+            self.encoder_opt.load_state_dict(state_dict)
+        except IOError:
+            print 'use a new optimizer'
 
         # reinitialize scheduler
         self.encoder_scheduler = get_scheduler(self.encoder_opt, params, iterations)

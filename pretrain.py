@@ -93,8 +93,8 @@ while True:
             test_loss = np.array(loss_log[2])[1 :]
             for i, loss in enumerate(losses) :
                 plt.subplot(611 + i)
-                plt.plot(iters, train_loss[:, i].tolist(), '.-', label='train_loss')
-                plt.plot(iters, test_loss[:, i].tolist(), '.-', label='test_loss')
+                plt.plot(iters, train_loss[:, i].tolist(), ',-', label='train_loss')
+                plt.plot(iters, test_loss[:, i].tolist(), ',-', label='test_loss')
                 plt.xlabel('iterations')
                 plt.ylabel(loss)
                 plt.legend()  # 加了这一句才显示label
