@@ -13,7 +13,8 @@ from scripts.make_dataset import show_pts_on_img
 from scripts.segment import show_mask_on_img
 import random
 import numpy as np
-
+import cv2
+import scipy.misc
 
 def getItem(data_dir, index, img_transform):
     img = Image.open(os.path.join(data_dir, '%d.png' % index)).convert('RGB')
@@ -58,15 +59,51 @@ class HandPretrainSet(data.Dataset) :
         #return len(self.imgs)/8
         return len(self.imgs)
 
+    def data_augmentation(self, img, vec) :
+
+        start_v = random.randint(0, 10)
+        start_u = random.randint(0, 10)
+        crop_len = 15
+        end_v = img.shape[0] + start_v - crop_len
+        end_u = img.shape[1] + start_u - crop_len
+        cropped_img = img[start_v: end_v+1, start_u: end_u+1, : ]
+        cropped_vec = np.copy(vec)
+        cropped_vec[1] -= start_u
+        cropped_vec[2] -= start_v
+
+        resized_img = cv2.resize(cropped_img, (256, 256), interpolation=cv2.INTER_LINEAR)
+        resized_vec = np.copy(cropped_vec)
+        size = (cropped_img.shape[0] + cropped_img.shape[1]) / 2
+        resized_vec[0] = resized_vec[0] * 256 / size
+
+        # guassian noise
+        resized_img = resized_img + np.random.randn(256, 256, 3)
+        resized_img[resized_img > 255] = 255
+        resized_img[resized_img < 0] = 0
+
+        # test
+        # img_pth = '/home/lyf2/dataset/3dhand/dataset/img.png'
+        # scipy.misc.imsave(img_pth, resized_img)
+
+        return resized_img, resized_vec
+
+
     def __getitem__(self, index) :
-        self.img_transform = Compose([
-            utils.transform.Scale((256, 256), Image.BILINEAR),
-            ToTensor()])
-        input_img = getItem(self.data_dir, index, self.img_transform)
+
+        img = Image.open(os.path.join(self.data_dir, '%d.png' % index)).convert('RGB')
+        img = np.asarray(img)
+
         # get gt params
         vec = self.vectors[index]
-        vec = vec[1:]  # delete the first element 1 (valid bit)
-        return input_img, vec
+        vec = np.array(vec[1 :])  # delete the first element 1 (valid bit)
+
+        # data augmentation
+        img, vec = self.data_augmentation(img, vec)
+
+        # transform
+        img = np.transpose(img/255., axes=(2,0,1)).astype(np.float32)
+
+        return img, vec
 
 
 
@@ -122,34 +159,14 @@ class HandTrainSet(data.Dataset):
         resized_img[resized_img > 255] = 255
         resized_img[resized_img < 0] = 0
 
+
         # test
         # show_pts_on_img(resized_img, resized_pts)
-        # show_mask_on_img(resized_img, resized_mask * 255)
+        # show_mask_on_img(resized_img, resized_mask)
+
 
         return resized_img, resized_mask, resized_pts
 
-    # def __getitem__(self, index):
-    #     #input_img = getItem(self.data_dir, index, self.img_transform)
-    #
-    #     try:
-    #         img = Image.open(os.path.join(self.img_dir, '%08d.png' % index)).convert('RGB')
-    #         mask = Image.open(os.path.join(self.mask_dir, '%08d.png' % index))
-    #         joint_2d = np.array(self.anno[index]['2d_joint'])
-    #         if '3d_joint' in self.anno[index].keys() :
-    #             joint_3d = np.array(self.anno[index]['3d_joint'])
-    #         else :
-    #             joint_3d = np.zeros((21, 3))
-    #
-    #     except IOError:
-    #         print('mask %08d not found'%index)
-    #
-    #
-    #
-    #     # data augmentaion and resize
-    #     img, mask, joint_2d = self.data_augmentation(img, mask, joint_2d)
-    #     # transform
-    #     img = ToTensor()(img)
-    #     return img, joint_2d, joint_3d, mask
 
     def __getitem__(self, index):
 

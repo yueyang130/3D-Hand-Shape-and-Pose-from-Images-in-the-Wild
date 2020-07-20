@@ -22,7 +22,7 @@ step_size: 20000             # how often to decay learning rate
 gamma: 0.5                    # how much to decay learning rate
 
 w_2d: 1                   # the weight of 2d loss
-w_3d: 100000                 # the weight of 3d loss
+w_3d: 1000                 # the weight of 3d loss
 w_mask: 100                 # the weight of mask loss
 w_reg:  10                 # the weight of regulization loss
 

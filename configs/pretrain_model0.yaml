@@ -12,7 +12,7 @@ test_num: 256                   # How many images do you want to use when showin
 # optimization options
 max_iter: 180000             # maximum number of training iterations
 batch_size: 32                 # batch size
-weight_decay: 0.001           # weight decay
+weight_decay: 0.01           # weight decay
 beta1: 0.5                    # Adam parameter
 beta2: 0.999                  # Adam parameter
 init: kaiming                 # initialization [gaussian/kaiming/xavier/orthogonal]
@@ -22,13 +22,13 @@ step_size: 10000             # how often to decay learning rate
 gamma: 0.5                    # how much to decay learning rate
 
 # model options
-pretrain_loss_fn: L1          # vector reconstruction loss fn [L1/L2]
+pretrain_loss_fn: L2          # vector reconstruction loss fn [L1/L2]
 
-w_L1_pose: 300                    # the weight of pose loss
-w_L1_beta: 30000                     # the weight of shape loss
-w_L1_r: 300                       # the weight of rotation loss
-w_L1_t: 3                       # the weight of translation loss
-w_L1_s: 1                       # the weight of scale loss
+w_L1_pose: 1000                    # the weight of pose loss
+w_L1_beta: 100000                     # the weight of shape loss
+w_L1_r: 1000                       # the weight of rotation loss
+w_L1_t: 1                       # the weight of translation loss
+w_L1_s: 0.1                       # the weight of scale loss
 
 w_L2_pose: 1                    # the weight of pose loss
 w_L2_beta:                      # the weight of shape loss

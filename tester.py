@@ -29,7 +29,8 @@ def test(input_option, model, out_path):
         print("%d/%d"%(i, len(testloader)))
         images = data
         images = Variable(images.cuda())
-        out1, out2, _ = model(images)
+        with torch.no_grad():
+            out1, out2, _ = model(images)
 
         imgs = images[0].data * 255
         imgs = imgs[:3, :, :].permute(1, 2, 0)

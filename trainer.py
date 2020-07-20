@@ -67,7 +67,9 @@ class EncoderTrainer(nn.Module):
     def compute_3d_joint_loss(self, joint_rec, joint_gt, valid):
         # joint_gt: [bs, 21, 3]
         #ret = torch.sqrt(torch.sum((joint_rec - joint_gt)**2))
-        ret = (joint_rec - joint_gt)**2
+        m = torch.mean(joint_rec, dim=1, keepdim=True)
+
+        ret = ((joint_rec-m) - joint_gt)**2
         bs = valid.shape[0]
         valid_index = torch.arange(bs)[valid == 1]
         ret = ret[valid_index]   # valid_num * 21 * 3
@@ -173,12 +175,14 @@ class EncoderTrainer(nn.Module):
 
         self.encoder_opt.zero_grad()
         # encode
-        param_encoded = self.model(x)
+        _, _, param_encoded = self.model(x)
         # get groundtruth
         assert gt_vec.shape == param_encoded.shape   # (bs,22)
         # loss
-        param_gt = torch.detach(gt_vec)
+        param_gt = torch.detach(gt_vec).float()
 
+        pose_encoded = param_encoded[:,6:12]
+        pose_gt = param_gt[:, 6:12]
         self.loss_s    = self.param_recon_criterion(param_encoded[:,0], param_gt[:,0])
         self.loss_t    = self.param_recon_criterion(param_encoded[:,1:3], param_gt[:,1:3])
         self.loss_r    = self.param_recon_criterion(param_encoded[:,3:6], param_gt[:,3:6])
@@ -200,7 +204,7 @@ class EncoderTrainer(nn.Module):
     def sample_pretrain(self, x, gt_vec):
         assert self.ispretrain, "the method can be only used in pretrain mode"
         # encode
-        param_encoded = self.model(x)
+        _, _, param_encoded = self.model(x)
         # get groundtruth
         assert gt_vec.shape == param_encoded.shape   # (bs,22)
         # loss

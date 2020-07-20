@@ -11,6 +11,7 @@ from test_pretrain_model import pre_sample
 import matplotlib.pyplot as plt
 import pickle
 import numpy as np
+import tester
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str,
@@ -73,6 +74,13 @@ while True:
         if iterations == 0 or (iterations + 1) % config['test_iter'] == 0:
             with torch.no_grad():
 
+                pretrainer.eval()
+                img_iter_dir = os.path.join(image_dir, '%08d' % (iterations + 1))
+                if not os.path.exists(img_iter_dir) :
+                    os.makedirs(img_iter_dir)
+                tester.test(config['input_option'], pretrainer.model, img_iter_dir)
+                pretrainer.train()
+
                 new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=True)
                 train_num, train_loss = pre_sample(pretrainer, new_trainloader, config['batch_size'], config['test_num'])
                 test_num, test_loss = pre_sample(pretrainer, new_testLoader, config['batch_size'], config['test_num'])
@@ -85,7 +93,8 @@ while True:
 
 
         # save the test result
-        if (iterations + 1) % config['show_iter'] == 0 :
+        if iterations == 0 or (iterations + 1) % config['show_iter'] == 0 :
+
             losses = ['total_loss', 'pose_loss', 'beta_loss', 'r_loss', 't_loss','s_loss']
             # do not show iteration = 1
             iters = loss_log[0][1 :]

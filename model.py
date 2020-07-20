@@ -359,15 +359,15 @@ class _ResNet_Mano(nn.Module):
         # xs shape: batch_size * 22
 
         # if pretrain the encoder, return param vector
-        if self.pretrain:
-            return xs
+        # if self.pretrain:
+        #     return xs
 
         # hand and camera parameters
         scale = xs[:,0]
         trans = xs[:,1:3] 
-        rot = xs[:,3:6]    
+        rot = xs[:,3:6]
         theta = xs[:,6:12]
-        beta = xs[:,12:] 
+        beta = xs[:,12:]
 
         # get 3d mesh through pretrained MANO
         # x3d shape: batch_size * (21 + 778) * 3
