@@ -12,7 +12,7 @@ from scripts.make_dataset import show_pts_on_img
 import os
 
 # dataloader will load images as well as 2d joint heat maps
-def test(input_option, model, out_path):
+def test(input_option, model, out_path, data_pth = 'data/cropped'):
     img_transform = Compose([
         Scale((256, 256), Image.BILINEAR),
         ToTensor()])
@@ -22,7 +22,7 @@ def test(input_option, model, out_path):
     template.close()
 
 
-    testloader = torch.utils.data.DataLoader(datasets.HandTestSet('data/cropped', img_transform=img_transform),
+    testloader = torch.utils.data.DataLoader(datasets.HandTestSet(data_pth, img_transform=img_transform),
                                 num_workers=0,batch_size=1, shuffle=False, pin_memory=False)
 
     for i, data in enumerate(testloader, 0):
@@ -69,4 +69,24 @@ def main():
     test(input_option, model, 'data/out')
 
 
+def main2():
+    ls = [25000]
+    #ls = [10000,13000,15000,17000,19000,21000,30000,40000,50000,60000,70000]
+    for iter in ls:
+        input_option = 0
+        model_pth = "/home/lyf2/checkpoints/3dhand/pretrain/pretrain_model0/checkpoints/pretrained-model-0_%08d.pth"%iter
+        assert os.path.isfile(model_pth)
+        model_name = os.path.splitext(os.path.split(model_pth)[1])[0]
+        out_pth =  "/home/lyf2/dataset/3dhand/visual_test/out/" + model_name
+        if not os.path.exists(out_pth):
+            os.makedirs(out_pth)
 
+        #model = torch.nn.DataParallel(resnet34_Mano(input_option=input_option), device_ids=[0])
+        model = resnet34_Mano(input_option=input_option)
+        model.load_state_dict(torch.load(model_pth))
+        model.cuda()
+        model.eval()
+        test(input_option, model, out_pth, data_pth="/home/lyf2/dataset/3dhand/visual_test/image/")
+
+if __name__ == '__main__':
+    main()

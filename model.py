@@ -373,6 +373,13 @@ class _ResNet_Mano(nn.Module):
         # x3d shape: batch_size * (21 + 778) * 3
         x3d = rot_pose_beta_to_mesh(rot,theta,beta)
 
+        a = x3d[0]
+        x = a[:, 0]
+        y = a[:, 1]
+        z = a[:, 2]
+        print x.min(), x.max(), x.mean()
+        print y.min(), y.max(), y.mean()
+        print z.min(), z.max(), z.mean()
 
         # 2D joints  including 21 keypoints
         # x shape : batch * 1598
@@ -380,7 +387,7 @@ class _ResNet_Mano(nn.Module):
         x = trans.unsqueeze(1) + scale.unsqueeze(1).unsqueeze(2) * x3d[:,:,:2] 
         x = x.view(x.size(0),-1)
 
-              
+
         #x3d = scale.unsqueeze(1).unsqueeze(2) * x3d
         #x3d[:,:,:2]  = trans.unsqueeze(1) + x3d[:,:,:2] 
         

@@ -67,9 +67,7 @@ class EncoderTrainer(nn.Module):
     def compute_3d_joint_loss(self, joint_rec, joint_gt, valid):
         # joint_gt: [bs, 21, 3]
         #ret = torch.sqrt(torch.sum((joint_rec - joint_gt)**2))
-        m = torch.mean(joint_rec, dim=1, keepdim=True)
-
-        ret = ((joint_rec-m) - joint_gt)**2
+        ret = (joint_rec - joint_gt)**2
         bs = valid.shape[0]
         valid_index = torch.arange(bs)[valid == 1]
         ret = ret[valid_index]   # valid_num * 21 * 3

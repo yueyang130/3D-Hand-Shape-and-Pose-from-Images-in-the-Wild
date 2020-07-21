@@ -30,6 +30,7 @@ def getItem(data_dir, index, img_transform):
 class HandTestSet(data.Dataset):
     def __init__(self, root, img_transform=None):
         self.data_dir = root
+        self.imgs = get_img_path_list(root)
         self.img_transform = img_transform
                                 
     def __len__(self):
@@ -130,7 +131,7 @@ class HandTrainSet(data.Dataset):
         #return len(self.imgs)/8
         return len(self.imgs)
 
-    def data_augmentation(self, img, mask, pts) :
+    def data_augmentation(self, img, mask, pts, pts_3d) :
         """
             It's no problem to scale the pretrain set images because the images are originally 320*320.
             However, when scale the trainset images, the corresponding labels should be changed simultaniously
@@ -146,6 +147,7 @@ class HandTrainSet(data.Dataset):
         cropped_mask = mask[start_v: end_v+1, start_u: end_u+1]
         cropped_pts = np.concatenate([pts[:,0:1] - start_u, pts[:,1:2] - start_v, pts[:, 2:]], axis=1)
 
+        # resize
         resz = iaa.Resize({'height' : 256, 'width' : 256}, interpolation='linear')
 
         resized_img, resized_pts = resz.augment(image=cropped_img, keypoints=[cropped_pts[:, :2]])
@@ -153,6 +155,10 @@ class HandTrainSet(data.Dataset):
 
         resized_pts = resized_pts[0]
         resized_pts = np.concatenate([resized_pts, cropped_pts[:, 2 :]], axis=1)
+
+        resized_pts_3d = np.copy(pts_3d)
+        resized_pts_3d[:, 0] = pts_3d[:, 0] / cropped_img.shape[1] * 256
+        resized_pts_3d[:, 1] = pts_3d[:, 1] / cropped_img.shape[0] * 256
 
         # guassian noise
         resized_img = resized_img + np.random.randn(256, 256, 3)
@@ -165,7 +171,7 @@ class HandTrainSet(data.Dataset):
         # show_mask_on_img(resized_img, resized_mask)
 
 
-        return resized_img, resized_mask, resized_pts
+        return resized_img, resized_mask, resized_pts, resized_pts_3d
 
 
     def __getitem__(self, index):
@@ -190,14 +196,15 @@ class HandTrainSet(data.Dataset):
             joint_3d = np.zeros((21,3))
             valid[0] = 0
 
+        # data augmentaion and resize
+        img, mask, joint_2d, joint_3d = self.data_augmentation(img, mask, joint_2d, joint_3d)
+
         # set the center as the mean value of all points
         # convert millimeter to meter
         mean = np.mean(joint_3d, axis=0, keepdims=True)
         joint_3d -= mean
         joint_3d /= 1000
 
-        # data augmentaion and resize
-        img, mask, joint_2d = self.data_augmentation(img, mask, joint_2d)
         # transform
         img = np.transpose(img/255., axes=(2,0,1)).astype(np.float32)
         joint_2d = joint_2d.astype(np.float32)

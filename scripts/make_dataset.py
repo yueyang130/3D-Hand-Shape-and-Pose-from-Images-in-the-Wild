@@ -42,16 +42,23 @@ def crop(image, pts, pts_3d = None):
 
     resz = iaa.Resize({'height' : 320, 'width' : 320}, interpolation='linear')
 
+
     resized_image, resized_pts = resz.augment(image=cropped_image, keypoints=[cropped_pts[:, :2]])
     resized_pts = resized_pts[0]
     resized_pts = np.concatenate([resized_pts, cropped_pts[:,2:]], axis=1)
-    #show_pts_on_img(resized_image, resized_pts)
 
-    resized_pts = resized_pts
-    return resized_image, resized_pts
+    if pts_3d is not None:
+        resized_pts_3d = np.copy(pts_3d)
+        resized_pts_3d[:,0] = pts_3d[:,0] / cropped_image.shape[1] * 320
+        resized_pts_3d[:,1] = pts_3d[:,1] / cropped_image.shape[0] * 320
+        #show_pts_on_img(resized_image, resized_pts)
+        return resized_image, resized_pts, resized_pts_3d
+    else:
+        return resized_image, resized_pts
 
 def flip(image, pts):
     myFilp = iaa.Fliplr(p = 1.0)
+
     flipped_img, flipped_pts = myFilp.augment(image=image, keypoints=[pts[:, :2]])
     flipped_pts = flipped_pts[0]
     flipped_pts = np.concatenate([flipped_pts, pts[:, 2:]], axis=1)
@@ -165,8 +172,14 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
 
             anno_xyz = anno[:, :, im_id]
             anno_uv_l, anno_uv_r = myJTransfomer.transfrom3d_to_2d(anno_xyz)
+
+            # flip and translate 3d
+            flipped_anno_xyz = np.copy(anno_xyz)
+            flipped_anno_xyz[0, :] = -flipped_anno_xyz[0, :]
+            flipped_anno_xyz = np.transpose(flipped_anno_xyz)
+
             # transpose (3,21) to (21,3)
-            anno_xyz = np.transpose(anno_xyz)
+            #anno_xyz = np.transpose(anno_xyz)
             anno_uv_l = np.transpose(anno_uv_l)
             anno_uv_r = np.transpose(anno_uv_r)
 
@@ -180,35 +193,55 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
             The method that 3dhand_from_rgb use is to change the camera intrinst parameters and feed it to the NN.
             However, in this 3dhand NN, there is no input for camera parameters.
             So, what should we do to reflect 3d annotation's change?
-            Currently, we do nothing to the 3d annotation, and hope the NN can learn the camera parameters' dynamic change.
+            Currently, we do flip to 3d annotation, and hope the NN can learn crop(translation) and resize(scale).
             """
 
             # get 2d joints
             if os.path.exists(img_pth_l):
-                img_l = misc.imread(img_pth_l)
-                #show_pts_on_img(img_l, anno_uv_l)
-                img_l, anno_uv_l = flip(img_l, anno_uv_l)
-                new_img_l, new_anno_uv_l = crop(img_l, anno_uv_l)
-                #show_pts_on_img(new_img_l, new_anno_uv_l)
-                img_pth = outpath + '%08d.png' % cnt
-                misc.imsave(img_pth, new_img_l)
-                infor_dict['image'].append(get_image_dict(cnt, new_anno_uv_l, pts_3d=anno_xyz))
-                cnt += 1
-                if cnt % 10 == 0 : print("generate: %d" % cnt)
+                try:
+                    img_l = misc.imread(img_pth_l)
+                    #show_pts_on_img(img_l, anno_uv_l, '/home/lyf2/dataset/3dhand/dataset/pts_on_img1.png')
+
+                    img_l, anno_uv_l = flip(img_l, anno_uv_l)
+                    new_img_l, new_anno_uv_l, new_anno_xyz = crop(img_l, anno_uv_l, flipped_anno_xyz)
+                    #show_pts_on_img(new_img_l, new_anno_uv_l, '/home/lyf2/dataset/3dhand/dataset/pts_on_img2.png')
+
+                    # test
+                    #acco_anno_uv_l, _ = myJTransfomer.transfrom3d_to_2d(np.transpose(new_anno_xyz))
+                    #acco_anno_uv_l = np.transpose(acco_anno_uv_l)
+                    #show_pts_on_img(new_img_l, acco_anno_uv_l, '/home/lyf2/dataset/3dhand/dataset/pts_on_img3.png')
+
+
+                    img_pth = outpath + '%08d.png' % cnt
+                    misc.imsave(img_pth, new_img_l)
+                    infor_dict['image'].append(get_image_dict(cnt, new_anno_uv_l, pts_3d=new_anno_xyz))
+                    cnt += 1
+                    if cnt % 10 == 0 : print("generate: %d" % cnt)
+                except AssertionError or IOError:
+                    print '%s is skipped'%img_pth_l
 
             if os.path.exists(img_pth_r):
-                img_r = misc.imread(img_pth_r)
-                #show_pts_on_img(img_r, anno_uv_r)
-                # flip
-                img_r, anno_uv_r = flip(img_r, anno_uv_r)
-                # crop and resize
-                new_img_r, new_anno_uv_r = crop(img_r, anno_uv_r)
-                #show_pts_on_img(new_img_r, new_anno_uv_r)
-                img_pth = outpath + '%08d.png' % cnt
-                misc.imsave(img_pth, new_img_r)
-                infor_dict['image'].append(get_image_dict(cnt, new_anno_uv_r, pts_3d=anno_xyz))
-                cnt += 1
-                if cnt % 10 == 0 : print("generate: %d"% cnt)
+                try:
+                    img_r = misc.imread(img_pth_r)
+                    #show_pts_on_img(img_r, anno_uv_r, '/home/lyf2/dataset/3dhand/dataset/pts_on_img1.png')
+                    # flip
+                    img_r, anno_uv_r = flip(img_r, anno_uv_r)
+                    # crop and resize
+                    new_img_r, new_anno_uv_r, new_anno_xyz = crop(img_r, anno_uv_r, flipped_anno_xyz)
+                    #show_pts_on_img(new_img_r, new_anno_uv_r, '/home/lyf2/dataset/3dhand/dataset/pts_on_img2.png')
+
+                    # test
+                    # _, acco_anno_uv_r = myJTransfomer.transfrom3d_to_2d(np.transpose(new_anno_xyz))
+                    # acco_anno_uv_r = np.transpose(acco_anno_uv_r)
+                    # show_pts_on_img(new_img_r, acco_anno_uv_r, '/home/lyf2/dataset/3dhand/dataset/pts_on_img3.png')
+
+                    img_pth = outpath + '%08d.png' % cnt
+                    misc.imsave(img_pth, new_img_r)
+                    infor_dict['image'].append(get_image_dict(cnt, new_anno_uv_r, pts_3d=new_anno_xyz))
+                    cnt += 1
+                    if cnt % 10 == 0 : print("generate: %d"% cnt)
+                except AssertionError or IOError:
+                    print "%s is skipped"%img_pth_r
 
     return cnt
 
@@ -219,11 +252,11 @@ def main():
     train_newlabel_path = "/home/lyf2/dataset/3dhand/dataset1/train/joints.json"
     test_newlabel_path = "/home/lyf2/dataset/3dhand/dataset1/test/joints.json"
 
-    # if os.path.isdir(train_outpath):
-    #     shutil.rmtree(train_outpath)
+    if os.path.isdir(train_outpath):
+        shutil.rmtree(train_outpath)
 
-    # if os.path.isdir(test_outpath):
-    #     shutil.rmtree(test_outpath)
+    if os.path.isdir(test_outpath):
+        shutil.rmtree(test_outpath)
     if not os.path.exists(train_outpath):
         os.makedirs(train_outpath)
     if not os.path.exists(test_outpath):

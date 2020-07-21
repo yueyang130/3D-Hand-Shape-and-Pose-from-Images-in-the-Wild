@@ -49,7 +49,6 @@ train_writer = tensorboardX.SummaryWriter(log_dir)
 if opts.resume:
     iterations = trainer.resume(checkpoint_dir, config, version=opts.version)
     loss_log = utils.resume_loss_log(test_dir, iterations)
-    iterations -= 1
 else:
     loss_log = [[], [], []]
     iterations = 0
