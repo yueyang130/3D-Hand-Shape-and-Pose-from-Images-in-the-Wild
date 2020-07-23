@@ -57,6 +57,8 @@ else:
 if opts.lr is not None:
     trainer.set_lr(opts.lr)
 
+#trainer.load_model('data/model-0.pth')
+
 while True:
     for images, gt_2d, gt_3d, mask, valid_3d  in trainloader:
         # detach returns a new Variable whose req_grd is False
@@ -79,7 +81,7 @@ while True:
             utils.write_loss(iterations, trainer, train_writer)
 
         # test
-        if iterations == 0 or (iterations + 1) % config['test_iter'] == 0:
+        if iterations == 0 or iterations==100 or (iterations + 1) % config['test_iter'] == 0:
             trainer.eval()
             img_iter_dir = os.path.join(image_dir, '%08d' % (iterations+1))
             if not os.path.exists(img_iter_dir) :
@@ -87,7 +89,7 @@ while True:
             tester.test(config['input_option'], trainer.model, img_iter_dir)
             trainer.train()
 
-
+        if iterations == 100 or (iterations + 1) % config['test_iter'] == 0 :
             new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=False)
             train_num, train_loss = sample(trainer, new_trainloader, config['batch_size'], config['test_num'])
             test_num, test_loss = sample(trainer, new_testLoader, config['batch_size'], config['test_num'])

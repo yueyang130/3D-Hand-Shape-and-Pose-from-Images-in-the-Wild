@@ -18,13 +18,55 @@ from prepare_background import get_img_path_list, get_file_list
 import numpy as np
 from crop import get_crop_pos
 from prepare_dataset.mm2px import JointTransfomer
+import matplotlib.pyplot as plt
+import matplotlib
+from PIL import Image
 
 def show_pts_on_img(image, pts,
     img_pth = '/home/lyf2/dataset/3dhand/dataset/pts_on_img.png'):
 
-    kps = [Keypoint(x, y) for x,y,_ in pts]
+    if pts.shape[1] == 3:
+        kps = [Keypoint(x, y) for x,y,_ in pts]
+    else :
+        kps = [Keypoint(x, y) for x,y in pts]
+
     kpsoi = KeypointsOnImage(kps, shape=image.shape)
+    misc.imsave('/home/lyf2/dataset/3dhand/dataset/img.png', image)
     misc.imsave(img_pth, kpsoi.draw_on_image(image, size = 7))
+
+def show_line_on_img(image, pts,
+    img_pth = '/home/lyf2/dataset/3dhand/dataset/pts_on_img.png'):
+    edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [0, 9], [9, 10], [10, 11], [11, 12],
+             [0, 13],
+             [13, 14], [14, 15], [15, 16], [0, 17], [17, 18], [18, 19], [19, 20]]
+    plt.imshow(Image.fromarray(np.uint8(image)))
+    for p in range(pts.shape[0]) :
+        if pts.shape[1] == 2 or pts[p, 2] != 0 :
+            plt.plot(pts[p, 0], pts[p, 1], 'r.')
+            plt.text(pts[p, 0], pts[p, 1], '{0}'.format(p))
+    for ie, e in enumerate(edges) :
+        if pts.shape[1] == 2 or np.all(pts[e, 2] != 0) :
+            rgb = matplotlib.colors.hsv_to_rgb([ie / float(len(edges)), 1.0, 1.0])
+            plt.plot(pts[e, 0], pts[e, 1], color=rgb)
+    plt.axis('off')
+    plt.savefig(img_pth, bbox_inches='tight')
+    plt.close()
+
+def show_3dmesh(x3d ,out_path = '/home/lyf2/dataset/3dhand/dataset/3d.obj'):
+    assert x3d.shape == (799, 3)
+    template = open('data/template.obj')
+    content = template.readlines()
+    template.close()
+
+    # Save 3D mesh
+    file1 = open(out_path, 'w')
+    for j in xrange(778) :
+        file1.write("v %f %f %f\n" % (x3d[21 + j, 0], -x3d[21 + j, 1], -x3d[21 + j, 2]))
+    for j, x in enumerate(content) :
+        a = x[:len(x) - 1].split(" ")
+        if (a[0] == 'f') :
+            file1.write(x)
+    file1.close()
 
 def crop(image, pts, pts_3d = None):
     #show_pts_on_img(image, pts)

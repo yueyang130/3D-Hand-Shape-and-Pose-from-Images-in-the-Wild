@@ -8,7 +8,7 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 import datasets
-from scripts.make_dataset import show_pts_on_img
+from scripts.make_dataset import show_pts_on_img, show_line_on_img
 import os
 
 # dataloader will load images as well as 2d joint heat maps
@@ -46,7 +46,8 @@ def test(input_option, model, out_path, data_pth = 'data/cropped'):
         #fig = plt.figure(1)
         #plt.imshow(imgs)
         #plt.show()
-        show_pts_on_img(imgs, np.array([u,v, np.ones_like(u)]).transpose(), img_pth=os.path.join(out_path, 'pts_%d.png'%i))
+        #show_pts_on_img(imgs, np.array([u,v, np.ones_like(u)]).transpose(), img_pth=os.path.join(out_path, 'pts_%d.png'%i))
+        show_line_on_img(imgs, np.array([u,v, np.ones_like(u)]).transpose(), img_pth=os.path.join(out_path, 'pts_%d.png'%i))
 
 
         # Save 3D mesh
@@ -66,7 +67,7 @@ def main():
     model = torch.nn.DataParallel(resnet34_Mano(input_option=input_option), device_ids=[0])
     model.load_state_dict(torch.load('data/model-' + str(input_option) + '.pth'))
     model.eval()
-    test(input_option, model, 'data/out')
+    test(input_option, model, out_path="/home/lyf/yy_ws/code/3dhand/data/test/out/", data_pth="/home/lyf/yy_ws/code/3dhand/data/test/in/")
 
 
 def main2():

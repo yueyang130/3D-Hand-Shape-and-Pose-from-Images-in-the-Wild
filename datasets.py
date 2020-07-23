@@ -9,7 +9,7 @@ import pickle
 import json
 import imgaug as ia
 import imgaug.augmenters as iaa
-from scripts.make_dataset import show_pts_on_img
+from scripts.make_dataset import show_pts_on_img, show_line_on_img
 from scripts.segment import show_mask_on_img
 import random
 import numpy as np
@@ -173,6 +173,21 @@ class HandTrainSet(data.Dataset):
 
         return resized_img, resized_mask, resized_pts, resized_pts_3d
 
+    @staticmethod
+    def sort(anno):
+        """
+        sort the 2d and 3d annotation in MANO model's order
+        [1,5,9,13,17] becomes [9,13,5,1,17]
+        """
+        new_anno = np.zeros_like(anno)
+        old_order = [1,5,9,13,17]
+        new_order = [9,13,5,1,17]
+        new_anno[0, :] = anno[0, :]
+        for i in xrange(len(new_order)):
+            old_idxs = [old_order[i] + j for j in xrange(0,4)]
+            new_idxs = [new_order[i] + j for j in xrange(0,4)]
+            new_anno[new_idxs, :] = anno[old_idxs, :]
+        return new_anno
 
     def __getitem__(self, index):
 
@@ -187,7 +202,7 @@ class HandTrainSet(data.Dataset):
         except IOError:
             mask = np.zeros((256, 256), dtype=np.uint8)
             valid[1] = 0
-            print('mask %08d not found'%index)
+            #print('mask %08d not found'%index)
 
         joint_2d = np.array(self.anno[index]['2d_joint'])
         if '3d_joint' in self.anno[index].keys():
@@ -201,9 +216,12 @@ class HandTrainSet(data.Dataset):
 
         # set the center as the mean value of all points
         # convert millimeter to meter
-        mean = np.mean(joint_3d, axis=0, keepdims=True)
-        joint_3d -= mean
-        joint_3d /= 1000
+
+        # sort the 2d and 3d annotation in MANO model's order
+        joint_2d = self.sort(joint_2d)
+        joint_3d = self.sort(joint_3d)
+        # test
+        #show_line_on_img(img, joint_2d)
 
         # transform
         img = np.transpose(img/255., axes=(2,0,1)).astype(np.float32)

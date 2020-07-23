@@ -6,6 +6,7 @@ import cv2 as cv
 import pickle
 import matplotlib.pyplot as plt
 import utils
+import os
 
 def show_mask_on_img(img, mask,
     img_pth = '/home/lyf2/dataset/3dhand/dataset/mask_on_img.png'):
@@ -115,7 +116,7 @@ def main2():
 
 
 def main(resume_train=True, resume_index=0):
-    root = '/home/lyf2/dataset/3dhand/dataset/'
+    root = '/home/lyf2/dataset/3dhand/dataset1/'
     sel = ['train','test']
     label_pths = [root + x + '/joints.json' for x in sel]  # 2D joint annotation location
     img_dirs = [root + x +'/' for x in sel]   # input image dir, please end with /
@@ -123,6 +124,10 @@ def main(resume_train=True, resume_index=0):
     # fi = open(label_pth, 'rb')
     # anno = pickle.load(fi)
     # fi.close()
+    for dir in mask_dirs:
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
     for j in range(2):
 
         datas = utils.parse_labelfile(0, '.json', label_pths[j])
@@ -144,6 +149,6 @@ def main(resume_train=True, resume_index=0):
 
 
 if __name__ == '__main__':
-    main(True, resume_index=2809)
+    main(True, resume_index=28729)
 
 

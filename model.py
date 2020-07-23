@@ -369,17 +369,23 @@ class _ResNet_Mano(nn.Module):
         theta = xs[:,6:12]
         beta = xs[:,12:]
 
+        # scale_np = scale.detach().cpu().numpy()
+        # trans_np = trans.detach().cpu().numpy()
+        # rot_np = rot.detach().cpu().numpy()
+        # theta_np = theta.detach().cpu().numpy()
+        # beta_np = beta.detach().cpu().numpy()
+
         # get 3d mesh through pretrained MANO
         # x3d shape: batch_size * (21 + 778) * 3
         x3d = rot_pose_beta_to_mesh(rot,theta,beta)
 
-        a = x3d[0]
-        x = a[:, 0]
-        y = a[:, 1]
-        z = a[:, 2]
-        print x.min(), x.max(), x.mean()
-        print y.min(), y.max(), y.mean()
-        print z.min(), z.max(), z.mean()
+        # a = x3d[0]
+        # x = a[:, 0]
+        # y = a[:, 1]
+        # z = a[:, 2]
+        # print x.min(), x.max(), x.mean()
+        # print y.min(), y.max(), y.mean()
+        # print z.min(), z.max(), z.mean()
 
         # 2D joints  including 21 keypoints
         # x shape : batch * 1598
