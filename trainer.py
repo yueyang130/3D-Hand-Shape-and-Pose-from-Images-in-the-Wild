@@ -59,11 +59,20 @@ class EncoderTrainer(nn.Module):
 
     def comupte_2d_joint_loss(self, joint_rec, joint_gt):
         joint_rec = self.convert_vec_to_2d(joint_rec)
+
         valid_idx = (joint_gt[:, :, 2] == 1)  # (bs, 21)
         valid_idx = valid_idx.unsqueeze(dim=2).repeat((1,1,2))
         valid_joint_rec = joint_rec[valid_idx]
         valid_joint_gt  = joint_gt[:,:,:2][valid_idx]
-        ret = torch.mean(torch.abs(valid_joint_rec - valid_joint_gt))
+        loss1 = torch.mean(torch.abs(valid_joint_rec - valid_joint_gt))
+        # extra loss2, which helps to train translation
+        pc_valid_idx = (joint_gt[:, 0, 2] == 1)
+        valid_pc_joint_rec = joint_rec[:, 0, :2][pc_valid_idx]
+        valid_pc_joint_gt  = joint_gt[:, 0, :2][pc_valid_idx]
+        loss2 = torch.mean(torch.abs(valid_pc_joint_rec - valid_pc_joint_gt))
+
+        ret = loss1 + 1 * loss2
+
         return ret
 
     def compute_3d_joint_loss(self, joint_rec_m, joint_gt, valid):

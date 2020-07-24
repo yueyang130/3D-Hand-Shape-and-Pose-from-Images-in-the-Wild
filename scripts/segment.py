@@ -137,7 +137,7 @@ def main(resume_train=True, resume_index=0):
         if resume_train:
             start = resume_index if j == 0 else 0
         else:
-            start = 0 if j == 0 else resume_index
+            start = num if j == 0 else resume_index
 
         for ii in xrange(start,num) :
             dat = ls[ii]
@@ -149,6 +149,6 @@ def main(resume_train=True, resume_index=0):
 
 
 if __name__ == '__main__':
-    main(True, resume_index=28729)
+    main(True, resume_index=30157)
 
 

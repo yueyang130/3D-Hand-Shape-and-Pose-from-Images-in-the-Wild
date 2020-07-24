@@ -61,7 +61,8 @@ def show_3dmesh(x3d ,out_path = '/home/lyf2/dataset/3dhand/dataset/3d.obj'):
     # Save 3D mesh
     file1 = open(out_path, 'w')
     for j in xrange(778) :
-        file1.write("v %f %f %f\n" % (x3d[21 + j, 0], -x3d[21 + j, 1], -x3d[21 + j, 2]))
+        #file1.write("v %f %f %f\n" % (x3d[21 + j, 0], -x3d[21 + j, 1], -x3d[21 + j, 2]))
+        file1.write("v %f %f %f\n" % (x3d[21 + j, 0], x3d[21 + j, 1], x3d[21 + j, 2]))
     for j, x in enumerate(content) :
         a = x[:len(x) - 1].split(" ")
         if (a[0] == 'f') :

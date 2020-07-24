@@ -53,7 +53,8 @@ def test(input_option, model, out_path, data_pth = 'data/cropped'):
         # Save 3D mesh
         file1 = open(os.path.join(out_path,str(i)+'.obj'),'w')
         for j in xrange(778):
-            file1.write("v %f %f %f\n"%(out2[0,21+j,0],-out2[0,21+j,1],-out2[0,21+j,2]))
+            #file1.write("v %f %f %f\n"%(out2[0,21+j,0],-out2[0,21+j,1],-out2[0,21+j,2]))
+            file1.write("v %f %f %f\n"%(out2[0,21+j,0],out2[0,21+j,1],out2[0,21+j,2]))
         for j,x in enumerate(content):
             a = x[:len(x)-1].split(" ")
             if (a[0] == 'f'):
@@ -71,11 +72,11 @@ def main():
 
 
 def main2():
-    ls = [25000]
+    ls = [1000]
     #ls = [10000,13000,15000,17000,19000,21000,30000,40000,50000,60000,70000]
     for iter in ls:
         input_option = 0
-        model_pth = "/home/lyf2/checkpoints/3dhand/pretrain/pretrain_model0/checkpoints/pretrained-model-0_%08d.pth"%iter
+        model_pth = "/home/lyf2/checkpoints/3dhand/train/train_model0/checkpoints/model-0_%08d.pth"%iter
         assert os.path.isfile(model_pth)
         model_name = os.path.splitext(os.path.split(model_pth)[1])[0]
         out_pth =  "/home/lyf2/dataset/3dhand/visual_test/out/" + model_name
@@ -90,4 +91,4 @@ def main2():
         test(input_option, model, out_pth, data_pth="/home/lyf2/dataset/3dhand/visual_test/image/")
 
 if __name__ == '__main__':
-    main()
+    main2()

@@ -34,7 +34,7 @@ class HandTestSet(data.Dataset):
         self.img_transform = img_transform
                                 
     def __len__(self):
-        return 5
+        return len(self.imgs)
 
     def __getitem__(self, index):
         return getItem(self.data_dir, index, self.img_transform)
@@ -202,7 +202,7 @@ class HandTrainSet(data.Dataset):
         except IOError:
             mask = np.zeros((256, 256), dtype=np.uint8)
             valid[1] = 0
-            #print('mask %08d not found'%index)
+            print('mask %08d not found'%index)
 
         joint_2d = np.array(self.anno[index]['2d_joint'])
         if '3d_joint' in self.anno[index].keys():
