@@ -146,7 +146,7 @@ def process_PANOPTIC(outpath, infor_dict, cnt, num = float('inf')):
         img_path = outpath + '%08d.png'%cnt
         misc.imsave(img_path, new_img)
         #pt_on_img_path = outpath + 'pt_on_img_%08d.png'%cnt
-        #show_pts_on_img(new_img, new_pts, pt_on_img_path)
+        #show_line_on_img(new_img, new_pts)
         infor_dict['image'].append(get_image_dict(cnt, new_pts, pts_3d=None))
 
         cnt += 1
@@ -176,6 +176,7 @@ def process_MPII(outpath, infor_dict, cnt, num = float('inf'), trainset = True):
         if is_left:
             new_img, new_pts = flip(new_img, new_pts)
             #show_pts_on_img(new_img, new_pts)
+            #show_line_on_img(new_img, new_pts)
 
         img_pth = outpath + '%08d.png'%cnt
         misc.imsave(img_pth, new_img)
@@ -250,6 +251,7 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
                     img_l, anno_uv_l = flip(img_l, anno_uv_l)
                     new_img_l, new_anno_uv_l, new_anno_xyz = crop(img_l, anno_uv_l, flipped_anno_xyz)
                     #show_pts_on_img(new_img_l, new_anno_uv_l, '/home/lyf2/dataset/3dhand/dataset/pts_on_img2.png')
+                    #show_line_on_img(new_img_l, new_anno_uv_l)
 
                     # test
                     #acco_anno_uv_l, _ = myJTransfomer.transfrom3d_to_2d(np.transpose(new_anno_xyz))
@@ -291,21 +293,20 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
     return cnt
 
 def main():
-    train_outpath = "/home/lyf2/dataset/3dhand/dataset1/train/image/"
-    test_outpath = "/home/lyf2/dataset/3dhand/dataset1/test/image/"
+    train_outpath = "/home/lyf2/dataset/3dhand/dataset/train/image/"
+    test_outpath = "/home/lyf2/dataset/3dhand/dataset/test/image/"
 
-    train_newlabel_path = "/home/lyf2/dataset/3dhand/dataset1/train/joints.json"
-    test_newlabel_path = "/home/lyf2/dataset/3dhand/dataset1/test/joints.json"
+    train_newlabel_path = "/home/lyf2/dataset/3dhand/dataset/train/joints.json"
+    test_newlabel_path = "/home/lyf2/dataset/3dhand/dataset/test/joints.json"
 
-    if os.path.isdir(train_outpath):
-        shutil.rmtree(train_outpath)
-
-    if os.path.isdir(test_outpath):
-        shutil.rmtree(test_outpath)
-    if not os.path.exists(train_outpath):
-        os.makedirs(train_outpath)
-    if not os.path.exists(test_outpath):
-        os.makedirs(test_outpath)
+    # if os.path.isdir(train_outpath):
+    #     shutil.rmtree(train_outpath)
+    # if os.path.isdir(test_outpath):
+    #     shutil.rmtree(test_outpath)
+    # if not os.path.exists(train_outpath):
+    #     os.makedirs(train_outpath)
+    # if not os.path.exists(test_outpath):
+    #     os.makedirs(test_outpath)
 
     # trainset
     infor_dict = {'image' : []}

@@ -176,14 +176,13 @@ class HandTrainSet(data.Dataset):
         return resized_img, resized_mask, resized_pts, resized_pts_3d
 
     @staticmethod
-    def sort(anno):
+    def sort(anno, new_order):
         """
         sort the 2d and 3d annotation in MANO model's order
         [1,5,9,13,17] becomes [9,13,5,1,17]
         """
         new_anno = np.zeros_like(anno)
         old_order = [1,5,9,13,17]
-        new_order = [9,13,5,1,17]
         new_anno[0, :] = anno[0, :]
         for i in xrange(len(new_order)):
             old_idxs = [old_order[i] + j for j in xrange(0,4)]
@@ -207,9 +206,16 @@ class HandTrainSet(data.Dataset):
             print('mask %08d not found'%index)
 
         joint_2d = np.array(self.anno[index]['2d_joint'])
+
+        # Note: stereo annotation order is inverse to MPII and PANOTIC
         if '3d_joint' in self.anno[index].keys():
             joint_3d = np.array(self.anno[index]['3d_joint'])
+            joint_2d = self.sort(joint_2d, new_order=[9, 13, 5, 1, 17])
+            joint_3d = self.sort(joint_3d, new_order=[9, 13, 5, 1, 17])
+            show_line_on_img(img, joint_2d)
         else:
+            joint_2d = self.sort(joint_2d, new_order=[17, 1, 5, 13, 9])
+            show_line_on_img(img, joint_2d)
             joint_3d = np.zeros((21,3))
             valid[0] = 0
 
@@ -220,8 +226,7 @@ class HandTrainSet(data.Dataset):
         # convert millimeter to meter
 
         # sort the 2d and 3d annotation in MANO model's order
-        joint_2d = self.sort(joint_2d)
-        joint_3d = self.sort(joint_3d)
+
         # test
         #show_line_on_img(img, joint_2d)
 

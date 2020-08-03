@@ -82,11 +82,11 @@ class EncoderTrainer(nn.Module):
         fend_valid_joint_gt = (joint_gt[:, finger_end_idx, :2] - joint_gt[:,[0], :2])[fend_valid_idx]
         loss3 = torch.mean(torch.abs(fend_valid_joint_gt - fend_valid_joint_rec))
 
-        ret = loss1 + 1 * loss2 + 0.1 * loss3
+        ret = loss1 + 0 * loss2 + 0 * loss3
 
         return ret
 
-    def compute_3d_joint_loss(self, joint_rec_m, joint_gt, valid):
+    def compute_3d_joint_loss(self, joint_rec_m, joint_gt_m, valid):
         # joint_gt: [bs, 21, 3]
         # joint_gt -= torch.mean(joint_gt, dim=1, keepdim=True)
         # # convert meter to millimeter
@@ -103,15 +103,21 @@ class EncoderTrainer(nn.Module):
         finger_end_idx = [1,5,9,13,17]
 
         # convert meter to millimeter
-        joint_rec = joint_rec_m * 1000
+        joint_rec = joint_rec_m[valid_index] * 1000
+        joint_gt  = joint_gt_m[valid_index]
 
-        # set the palm centre as start point
+
+
+        # set the palm centre as start point and scale
         fend_gt_norm = joint_gt[:,finger_end_idx,:] - joint_gt[:,[0],:] + torch.tensor(10**-8).cuda()
         fend_rec_norm = joint_rec[:,finger_end_idx,:] - joint_rec[:,[0],:]
         scale = torch.sqrt(torch.pow(fend_rec_norm, 2).sum(dim=2) / torch.pow(fend_gt_norm, 2).sum(dim=2)).detach().unsqueeze(dim=2)
-        fend_gt_norm = fend_gt_norm * scale
-        tmp = ((fend_gt_norm  - fend_rec_norm)**2)[valid_index]
-        loss1 = torch.mean(tmp)
+        fend_gt_norm_scale = fend_gt_norm * scale
+
+
+        tmp = fend_gt_norm_scale  - fend_rec_norm
+        loss1 = torch.mean(tmp**2)
+
 
         # set five fingers' end as start point
         loss_list = []
@@ -123,13 +129,11 @@ class EncoderTrainer(nn.Module):
             scale = torch.sqrt(torch.pow(fpoint_rec_norm, 2).sum(dim=2) / torch.pow(fpoint_gt_norm, 2).sum(dim=2)).detach().unsqueeze(dim=2)
             fpoint_gt_norm = fpoint_gt_norm * scale
 
-            tmp = ((fpoint_gt_norm - fpoint_rec_norm) ** 2)[valid_index]
-            loss_list.append(torch.mean(tmp))
+            tmp = fpoint_gt_norm - fpoint_rec_norm
+            loss_list.append(torch.mean(tmp**2))
 
-        s = torch.tensor(0.).cuda()
-        for i in xrange(len(loss_list)):
-            s += loss_list[i]
-        loss2 = s / len(loss_list)
+
+        loss2 = sum(loss_list) / len(loss_list)
 
         ret = 1. * loss1 + 5. *  loss2
 
