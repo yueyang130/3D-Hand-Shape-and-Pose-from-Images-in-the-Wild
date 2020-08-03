@@ -69,7 +69,7 @@ while True:
         valid_3d = valid_3d.cuda().detach()
 
         # test
-        if iterations == 0 or (iterations + 1) == 100 or (iterations + 1) % config['test_iter'] == 0 :
+        if (iterations + 1) == 100 or (iterations + 1) % config['test_iter'] == 0 :
         #if (iterations + 1) == 100 or (iterations + 1) % config['test_iter'] == 0 :
             trainer.eval()
             img_iter_dir = os.path.join(image_dir, '%08d' % (iterations + 1))
@@ -125,7 +125,7 @@ while True:
 
         # Save network weights
         #if (iterations + 1) % config['snapshot_save_iter'] == 0:
-        if iterations == 0 or (iterations + 1) % config['snapshot_save_iter'] == 0:
+        if (iterations + 1) % config['snapshot_save_iter'] == 0:
             trainer.save(checkpoint_dir, iterations)
 
         iterations += 1

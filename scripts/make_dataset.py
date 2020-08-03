@@ -35,7 +35,6 @@ def show_pts_on_img(image, pts,
     misc.imsave(img_pth, kpsoi.draw_on_image(image, size = 7))
 
 
-
 def show_line_on_img(image, pts,
     img_pth = '/home/lyf2/dataset/3dhand/dataset/pts_on_img.png'):
     edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [0, 9], [9, 10], [10, 11], [11, 12],

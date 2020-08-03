@@ -20,9 +20,6 @@ def show_mask_on_img(img, mask,
     misc.imsave(img_pth, mask_on_img)
 
 
-
-
-
 def inside_polygon(x, y, points):
     n = len(points)
 

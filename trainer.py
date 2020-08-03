@@ -7,6 +7,8 @@ from utils import get_scheduler, \
     weights_init, get_criterion, get_model_list
 import os
 from scripts.make_dataset import show_pts_on_img, show_line_on_img, show_3dmesh
+from scripts.segment import show_mask_on_img
+
 
 def __ee__(x) :
     if type(x) is torch.Tensor :
@@ -142,10 +144,11 @@ class EncoderTrainer(nn.Module):
         bs = mesh2d.shape[0]
 
         mesh2d = self.convert_vec_to_2d(mesh2d)  # [bs, 778, 2]
-        mesh2d = mesh2d.unsqueeze(1)
+        new_mesh2d = mesh2d.unsqueeze(1)
 
-        # u means width; v means height
-        new_mesh2d = torch.cat([mesh2d[:,:,:,1:2], mesh2d[:,:,:,0:1]], dim=3)
+        # mesh[0] means width; mesh[1] means height
+        # For grid_sample input, the first coordinate means width; the second means height
+        #new_mesh2d = torch.cat([mesh2d[:,:,:,1:2], mesh2d[:,:,:,0:1]], dim=3)
 
 
         # mesh may out of image
@@ -153,7 +156,7 @@ class EncoderTrainer(nn.Module):
         new_mesh2d[new_mesh2d < 0] = 0
         new_mesh2d[new_mesh2d >= size] = size - 1
         # normalized to [-1,1]
-        new_mesh2d = new_mesh2d / size * 2 - 1  # [bs, 1, 778, 2]
+        new_mesh2d = new_mesh2d / (size - 1) * 2 - 1  # [bs, 1, 778, 2]
 
         mask = mask.unsqueeze(1).float()   # [bs, 1, H, W]
 
@@ -187,10 +190,12 @@ class EncoderTrainer(nn.Module):
         joint_2d, mesh_2d = x2d[:, :42], x2d[:, 42:]
         joint_3d, mesh_3d = x3d[:, :21, :], x3d[:, 21:, :]
 
-        #testtrain
+        #test
         # img = np.transpose(x[0].cpu().numpy()*255, axes=(1,2,0))
         # show_line_on_img(img, gt_2d[0].cpu().numpy(), '/home/lyf2/dataset/3dhand/dataset/pts_on_img4.png')
+        # show_pts_on_img(img, self.convert_vec_to_2d(x2d)[0].detach().cpu().numpy(), '/home/lyf2/dataset/3dhand/dataset/mesh_on_img5.png')
         # show_line_on_img(img, self.convert_vec_to_2d(joint_2d)[0].detach().cpu().numpy(), '/home/lyf2/dataset/3dhand/dataset/pts_on_img5.png')
+        # show_mask_on_img(img, mask[0].detach().cpu().numpy())
         # show_3dmesh(x3d[0])
 
         self.loss_2d = self.comupte_2d_joint_loss(joint_2d, gt_2d)
