@@ -16,6 +16,8 @@ import numpy as np
 import cv2
 import scipy.misc
 
+
+
 def getItem(data_dir, index, img_transform):
     img = Image.open(os.path.join(data_dir, '%d.png' % index)).convert('RGB')
     #img_view = ToTensor(img)

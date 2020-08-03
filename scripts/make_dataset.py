@@ -34,6 +34,8 @@ def show_pts_on_img(image, pts,
     misc.imsave('/home/lyf2/dataset/3dhand/dataset/img.png', image)
     misc.imsave(img_pth, kpsoi.draw_on_image(image, size = 7))
 
+
+
 def show_line_on_img(image, pts,
     img_pth = '/home/lyf2/dataset/3dhand/dataset/pts_on_img.png'):
     edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [0, 9], [9, 10], [10, 11], [11, 12],
@@ -51,6 +53,7 @@ def show_line_on_img(image, pts,
     plt.axis('off')
     plt.savefig(img_pth, bbox_inches='tight')
     plt.close()
+
 
 def show_3dmesh(x3d ,out_path = '/home/lyf2/dataset/3dhand/dataset/3d.obj'):
     assert x3d.shape == (799, 3)

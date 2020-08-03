@@ -133,8 +133,9 @@ def rot_pose_beta_to_mesh(rots, poses, betas):
         + Ts[1].contiguous().view(batch_size, 4, mesh_num) * rest_shape_hs[1].contiguous().view(-1, 1, mesh_num)\
         + Ts[2].contiguous().view(batch_size, 4, mesh_num) * rest_shape_hs[2].contiguous().view(-1, 1, mesh_num)\
         + Ts[3].contiguous().view(batch_size, 4, mesh_num) * rest_shape_hs[3].contiguous().view(-1, 1, mesh_num)
-   
-    #v = v.permute(0,2,1)[:,:,:3] 
+
+    #v = v.permute(0,2,1)[:,:,:3]
+    #rots = torch.tensor([(0. ,0. ,0.)]).cuda()
     Rots = rodrigues(rots)[0]
 
     Jtr = []
@@ -369,23 +370,15 @@ class _ResNet_Mano(nn.Module):
         theta = xs[:,6:12]
         beta = xs[:,12:]
 
+        rot_np = rot.detach().cpu().numpy()
         # scale_np = scale.detach().cpu().numpy()
         # trans_np = trans.detach().cpu().numpy()
-        # rot_np = rot.detach().cpu().numpy()
         # theta_np = theta.detach().cpu().numpy()
         # beta_np = beta.detach().cpu().numpy()
 
         # get 3d mesh through pretrained MANO
         # x3d shape: batch_size * (21 + 778) * 3
         x3d = rot_pose_beta_to_mesh(rot,theta,beta)
-
-        # a = x3d[0]
-        # x = a[:, 0]
-        # y = a[:, 1]
-        # z = a[:, 2]
-        # print x.min(), x.max(), x.mean()
-        # print y.min(), y.max(), y.mean()
-        # print z.min(), z.max(), z.mean()
 
         # 2D joints  including 21 keypoints
         # x shape : batch * 1598

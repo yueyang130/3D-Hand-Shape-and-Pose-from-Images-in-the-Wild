@@ -15,19 +15,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tester
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str,
                     help='Path to the config file')
 parser.add_argument('--resume', action='store_true')
 parser.add_argument('--version', type=int, default=None, help='The iteraiton of the model that you want to resume from')
-parser.add_argument('--gpu_id', type=int, default=0, help='gpu_id')
+parser.add_argument('--gpu_id', type=str, default='0', help='gpu_id')
 parser.add_argument("--lr", type=float,default=None)
 opts = parser.parse_args()
 
-
-
 cudnn.benchmark = True  # the code can accelerate the training usually
-torch.cuda.set_device(opts.gpu_id)
+os.environ["CUDA_VISIBLE_DEVICES"] = opts.gpu_id
+#torch.cuda.set_device(opts.gpu_id)
 
 # Load experiment setting
 config = utils.get_config(opts.config)
@@ -57,7 +57,7 @@ else:
 if opts.lr is not None:
     trainer.set_lr(opts.lr)
 
-#trainer.load_model('data/model-0.pth')
+trainer.load_model('data/model-0-module.pth')
 
 while True:
     for images, gt_2d, gt_3d, mask, valid_3d  in trainloader:
@@ -68,26 +68,26 @@ while True:
         mask   = mask.cuda().detach()
         valid_3d = valid_3d.cuda().detach()
 
+        # test
+        if iterations == 0 or (iterations + 1) == 100 or (iterations + 1) % config['test_iter'] == 0 :
+        #if (iterations + 1) == 100 or (iterations + 1) % config['test_iter'] == 0 :
+            trainer.eval()
+            img_iter_dir = os.path.join(image_dir, '%08d' % (iterations + 1))
+            if not os.path.exists(img_iter_dir) :
+                os.makedirs(img_iter_dir)
+            tester.test(config['input_option'], trainer.model, img_iter_dir)
+            trainer.train()
+
         #with utils.Timer("Elapsed time in update: %f"):
         trainer.encoder_update(images, gt_2d, gt_3d, mask, valid_3d)
         trainer.update_lr()
         torch.cuda.synchronize()  # the code synchronize gpu and cpu process , ensuring the accuracy of time measure
-
 
         # Dump training stats in log file
         if (iterations + 1) % config['print_loss_iter'] == 0 :
             print "Iteration: %08d/%08d, " % (iterations + 1, max_iter),
             trainer.print_losses()
             utils.write_loss(iterations, trainer, train_writer)
-
-        # test
-        if iterations == 0 or iterations==100 or (iterations + 1) % config['test_iter'] == 0:
-            trainer.eval()
-            img_iter_dir = os.path.join(image_dir, '%08d' % (iterations+1))
-            if not os.path.exists(img_iter_dir) :
-                os.makedirs(img_iter_dir)
-            tester.test(config['input_option'], trainer.model, img_iter_dir)
-            trainer.train()
 
         if iterations == 100 or (iterations + 1) % config['test_iter'] == 0 :
             new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=False)
@@ -105,9 +105,9 @@ while True:
         if (iterations + 1) % config['show_iter'] == 0 :
             losses = ['total_loss' ,'2d_loss', '3d_loss', 'mask_loss', 'reg_loss']
             # do not show iteration = 1
-            iters = loss_log[0][1 :]
-            train_loss = np.array(loss_log[1])[1:]
-            test_loss = np.array(loss_log[2])[1:]
+            iters = loss_log[0][5 :]
+            train_loss = np.array(loss_log[1])[5:]
+            test_loss = np.array(loss_log[2])[5:]
             for i, loss in enumerate(losses):
                 if i == 0:
                    plt.subplot(311)
@@ -124,7 +124,8 @@ while True:
             plt.close()
 
         # Save network weights
-        if (iterations + 1) % config['snapshot_save_iter'] == 0:
+        #if (iterations + 1) % config['snapshot_save_iter'] == 0:
+        if iterations == 0 or (iterations + 1) % config['snapshot_save_iter'] == 0:
             trainer.save(checkpoint_dir, iterations)
 
         iterations += 1

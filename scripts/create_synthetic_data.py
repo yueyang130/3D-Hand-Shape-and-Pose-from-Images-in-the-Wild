@@ -19,7 +19,7 @@ from prepare_background import get_img_path_list
 #        self.vc = color
 
 # total number of synthetic image
-SYNTHETIC_NUM = 20000
+SYNTHETIC_NUM = 10
 # total number of bg images
 model_pth = '/home/lyf/yy_ws/code/manopth/manopth/mano/models/MANO_RIGHT.pkl'
 bg_pth    = '/home/lyf/yy_ws/code/3dhand/data/backgrounds/'
@@ -68,10 +68,10 @@ for i in xrange(0,SYNTHETIC_NUM):
 
     angle = random.uniform(-np.pi,np.pi)
     axis =  np.array([random.uniform(-1.,1.) for _ in xrange(3)]) 
-    axis[random.randint(0,2)] = 1.  
-    axis /= np.linalg.norm(axis) 
-    rot = angle * axis   
-    
+    axis[random.randint(0,2)] = 1.
+    axis /= np.linalg.norm(axis)
+    rot = angle * axis
+    rot = np.array([0, 0, 1]) * np.pi / 2
     R = cv2.Rodrigues(rot)[0] 
  
     w, h = (320, 320)
@@ -80,6 +80,7 @@ for i in xrange(0,SYNTHETIC_NUM):
     mesh = m.r
     joint = m.J_transformed.r
 
+    # rorate the 3d mesh and joint
     mesh = np.transpose(np.matmul(R,np.transpose(mesh)))
     joint = np.transpose(np.matmul(R,np.transpose(joint)))
     

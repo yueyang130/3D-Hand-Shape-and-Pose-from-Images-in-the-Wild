@@ -17,6 +17,8 @@ def test(input_option, model, out_path, data_pth = 'data/cropped'):
         Scale((256, 256), Image.BILINEAR),
         ToTensor()])
 
+    model.eval()
+
     template = open('data/template.obj')
     content = template.readlines()
     template.close()
@@ -49,12 +51,11 @@ def test(input_option, model, out_path, data_pth = 'data/cropped'):
         #show_pts_on_img(imgs, np.array([u,v, np.ones_like(u)]).transpose(), img_pth=os.path.join(out_path, 'pts_%d.png'%i))
         show_line_on_img(imgs, np.array([u,v, np.ones_like(u)]).transpose(), img_pth=os.path.join(out_path, 'pts_%d.png'%i))
 
-
+        joints = out2[:, :21].cpu().numpy()
         # Save 3D mesh
         file1 = open(os.path.join(out_path,str(i)+'.obj'),'w')
         for j in xrange(778):
-            #file1.write("v %f %f %f\n"%(out2[0,21+j,0],-out2[0,21+j,1],-out2[0,21+j,2]))
-            file1.write("v %f %f %f\n"%(out2[0,21+j,0],out2[0,21+j,1],out2[0,21+j,2]))
+            file1.write("v %f %f %f\n"%(out2[0,21+j,0],-out2[0,21+j,1],-out2[0,21+j,2]))
         for j,x in enumerate(content):
             a = x[:len(x)-1].split(" ")
             if (a[0] == 'f'):
@@ -65,10 +66,12 @@ def main():
     # 1 use image and joint heat maps as input
     # 0 use image only as input
     input_option = 0
-    model = torch.nn.DataParallel(resnet34_Mano(input_option=input_option), device_ids=[0])
-    model.load_state_dict(torch.load('data/model-' + str(input_option) + '.pth'))
-    model.eval()
-    test(input_option, model, out_path="/home/lyf/yy_ws/code/3dhand/data/test/out/", data_pth="/home/lyf/yy_ws/code/3dhand/data/test/in/")
+    model = resnet34_Mano(input_option=input_option)
+    model.cuda()
+    mdict = torch.load('data/model-' + str(input_option) + '-module.pth')
+    model.load_state_dict(mdict)
+
+    test(input_option, model, out_path="/home/lyf/yy_ws/code/3dhand/data/out/", data_pth="/home/lyf/yy_ws/code/3dhand/data/cropped/")
 
 
 def main2():
@@ -87,8 +90,7 @@ def main2():
         model = resnet34_Mano(input_option=input_option)
         model.load_state_dict(torch.load(model_pth))
         model.cuda()
-        model.eval()
         test(input_option, model, out_pth, data_pth="/home/lyf2/dataset/3dhand/visual_test/image/")
 
 if __name__ == '__main__':
-    main2()
+    main()

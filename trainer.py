@@ -28,8 +28,9 @@ class EncoderTrainer(nn.Module):
         self.input_option = params['input_option']
         self.weight = params
         # initiate the network modules
-        self.model = resnet34_Mano(ispretrain=ispretrain, input_option=params['input_option'])
-
+        #self.model = resnet34_Mano(ispretrain=ispretrain, input_option=params['input_option'])
+        self.model = torch.nn.DataParallel(resnet34_Mano(input_option=params['input_option']))
+        self.model = self.model.module
         self.mean_3d = torch.zeros(3)
 
         # setup the optimizer
@@ -39,6 +40,8 @@ class EncoderTrainer(nn.Module):
         #p_view = self.model.state_dict()
         self.encoder_opt = torch.optim.Adam([p for p in self.model.parameters() if p.requires_grad],
                                     lr = lr, betas=(beta1, beta2), weight_decay=params.weight_decay)
+        self.encoder_opt = nn.DataParallel(self.encoder_opt).module
+
         self.encoder_scheduler = get_scheduler(self.encoder_opt, params)
 
         # set loss fn
@@ -70,8 +73,14 @@ class EncoderTrainer(nn.Module):
         valid_pc_joint_rec = joint_rec[:, 0, :2][pc_valid_idx]
         valid_pc_joint_gt  = joint_gt[:, 0, :2][pc_valid_idx]
         loss2 = torch.mean(torch.abs(valid_pc_joint_rec - valid_pc_joint_gt))
+        # extra loss3, which helps to train rotation
+        finger_end_idx = [1, 5, 9, 13, 17]
+        fend_valid_idx = (joint_gt[:, finger_end_idx, 2] == 1)
+        fend_valid_joint_rec = (joint_rec[:, finger_end_idx, :2] - joint_rec[:, [0], :2])[fend_valid_idx]
+        fend_valid_joint_gt = (joint_gt[:, finger_end_idx, :2] - joint_gt[:,[0], :2])[fend_valid_idx]
+        loss3 = torch.mean(torch.abs(fend_valid_joint_gt - fend_valid_joint_rec))
 
-        ret = loss1 + 1 * loss2
+        ret = loss1 + 1 * loss2 + 0.1 * loss3
 
         return ret
 
@@ -89,29 +98,38 @@ class EncoderTrainer(nn.Module):
         bs = valid.shape[0]
         valid_index = torch.arange(bs)[valid == 1]
 
+        finger_end_idx = [1,5,9,13,17]
+
         # convert meter to millimeter
         joint_rec = joint_rec_m * 1000
 
-        loss_list = []
         # set the palm centre as start point
-        finger_end_idx = [1,5,9,13,17]
-        fend_gt_norm = joint_gt[:,finger_end_idx,:] - joint_gt[:,[0],:]
+        fend_gt_norm = joint_gt[:,finger_end_idx,:] - joint_gt[:,[0],:] + torch.tensor(10**-8).cuda()
         fend_rec_norm = joint_rec[:,finger_end_idx,:] - joint_rec[:,[0],:]
-        loss1 = ((fend_gt_norm - fend_rec_norm)**2)[valid_index]
-        loss_list.append(5 * torch.mean(loss1))
+        scale = torch.sqrt(torch.pow(fend_rec_norm, 2).sum(dim=2) / torch.pow(fend_gt_norm, 2).sum(dim=2)).detach().unsqueeze(dim=2)
+        fend_gt_norm = fend_gt_norm * scale
+        tmp = ((fend_gt_norm  - fend_rec_norm)**2)[valid_index]
+        loss1 = torch.mean(tmp)
 
         # set five fingers' end as start point
+        loss_list = []
         for idx in finger_end_idx:
             point_idx = [idx+i for i in xrange(1,4)]
-            fpoint_gt_norm = joint_gt[:, point_idx, :] - joint_gt[:, [idx], :]
+            fpoint_gt_norm = joint_gt[:, point_idx, :] - joint_gt[:, [idx], :] + torch.tensor(10**-8).cuda()
             fpoint_rec_norm = joint_rec[:, point_idx, :] - joint_rec[:, [idx], :]
-            loss1 = ((fpoint_gt_norm - fpoint_rec_norm) ** 2)[valid_index]
-            loss_list.append(torch.mean(loss1))
 
-        ret = torch.tensor(0.).cuda()
+            scale = torch.sqrt(torch.pow(fpoint_rec_norm, 2).sum(dim=2) / torch.pow(fpoint_gt_norm, 2).sum(dim=2)).detach().unsqueeze(dim=2)
+            fpoint_gt_norm = fpoint_gt_norm * scale
+
+            tmp = ((fpoint_gt_norm - fpoint_rec_norm) ** 2)[valid_index]
+            loss_list.append(torch.mean(tmp))
+
+        s = torch.tensor(0.).cuda()
         for i in xrange(len(loss_list)):
-            ret += loss_list[i]
-        ret = ret / len(loss_list)
+            s += loss_list[i]
+        loss2 = s / len(loss_list)
+
+        ret = 1. * loss1 + 5. *  loss2
 
         return ret
 
@@ -169,7 +187,7 @@ class EncoderTrainer(nn.Module):
         joint_2d, mesh_2d = x2d[:, :42], x2d[:, 42:]
         joint_3d, mesh_3d = x3d[:, :21, :], x3d[:, 21:, :]
 
-        #test
+        #testtrain
         # img = np.transpose(x[0].cpu().numpy()*255, axes=(1,2,0))
         # show_line_on_img(img, gt_2d[0].cpu().numpy(), '/home/lyf2/dataset/3dhand/dataset/pts_on_img4.png')
         # show_line_on_img(img, self.convert_vec_to_2d(joint_2d)[0].detach().cpu().numpy(), '/home/lyf2/dataset/3dhand/dataset/pts_on_img5.png')
@@ -185,8 +203,6 @@ class EncoderTrainer(nn.Module):
                         w.w_3d * self.loss_3d + \
                         w.w_mask * self.loss_mask + \
                         w.w_reg * self.loss_reg
-
-
 
         self.train_loss.backward()
         self.encoder_opt.step()
@@ -339,5 +355,5 @@ class EncoderTrainer(nn.Module):
 
     def load_model(self, model_pth):
         state_dict = torch.load(model_pth)
-        self.model.load_state_dict(state_dict, strict=False)
+        self.model.load_state_dict(state_dict)
         return 0
