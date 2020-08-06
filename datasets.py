@@ -212,10 +212,10 @@ class HandTrainSet(data.Dataset):
             joint_3d = np.array(self.anno[index]['3d_joint'])
             joint_2d = self.sort(joint_2d, new_order=[9, 13, 5, 1, 17])
             joint_3d = self.sort(joint_3d, new_order=[9, 13, 5, 1, 17])
-            show_line_on_img(img, joint_2d)
+            #show_line_on_img(img, joint_2d)
         else:
             joint_2d = self.sort(joint_2d, new_order=[17, 1, 5, 13, 9])
-            show_line_on_img(img, joint_2d)
+            #show_line_on_img(img, joint_2d)
             joint_3d = np.zeros((21,3))
             valid[0] = 0
 

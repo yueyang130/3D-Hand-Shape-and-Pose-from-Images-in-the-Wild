@@ -57,7 +57,7 @@ else:
 if opts.lr is not None:
     trainer.set_lr(opts.lr)
 
-trainer.load_model('data/model-0-module.pth')
+#trainer.load_model('data/model-0-module.pth')
 
 while True:
     for images, gt_2d, gt_3d, mask, valid_3d  in trainloader:
@@ -69,7 +69,7 @@ while True:
         valid_3d = valid_3d.cuda().detach()
 
         # test
-        if (iterations + 1) == 100 or (iterations + 1) % config['test_iter'] == 0 :
+        if iterations == 0 or (iterations + 1) == 100 or (iterations + 1) % config['test_iter'] == 0 :
         #if (iterations + 1) == 100 or (iterations + 1) % config['test_iter'] == 0 :
             trainer.eval()
             img_iter_dir = os.path.join(image_dir, '%08d' % (iterations + 1))
@@ -89,10 +89,12 @@ while True:
             trainer.print_losses()
             utils.write_loss(iterations, trainer, train_writer)
 
-        if iterations == 100 or (iterations + 1) % config['test_iter'] == 0 :
+        if  (iterations+1) == 100 or (iterations + 1) % config['test_iter'] == 0 :
+            trainer.eval()
             new_trainloader, new_testLoader = utils.get_data_loader(config, isPretrain=False)
             train_num, train_loss = sample(trainer, new_trainloader, config['batch_size'], config['test_num'])
             test_num, test_loss = sample(trainer, new_testLoader, config['batch_size'], config['test_num'])
+            trainer.train()
             #print 'test on %d iamges in trainset, %d iamges in testset'%(train_num, test_num)
             loss_log[0].append(iterations+1)
             loss_log[1].append(train_loss)
@@ -105,9 +107,9 @@ while True:
         if (iterations + 1) % config['show_iter'] == 0 :
             losses = ['total_loss' ,'2d_loss', '3d_loss', 'mask_loss', 'reg_loss']
             # do not show iteration = 1
-            iters = loss_log[0][5 :]
-            train_loss = np.array(loss_log[1])[5:]
-            test_loss = np.array(loss_log[2])[5:]
+            iters = loss_log[0][:]
+            train_loss = np.array(loss_log[1])[:]
+            test_loss = np.array(loss_log[2])[:]
             for i, loss in enumerate(losses):
                 if i == 0:
                    plt.subplot(311)

@@ -18,12 +18,13 @@ parser.add_argument('--config', type=str,
                     help='Path to the config file')
 parser.add_argument('--resume', action='store_true')
 parser.add_argument('--version', type=int, default=None, help='The iteraiton of the model that you want to resume from')
-parser.add_argument('--gpu_id', type=int, default=0, help='gpu_id')
+parser.add_argument('--gpu_id', type=str, default='0', help='gpu_id')
 parser.add_argument("--lr", type=float,default=None)
 opts = parser.parse_args()
 
 cudnn.benchmark = True  # the code can accelerate the training usually
-torch.cuda.set_device(opts.gpu_id)
+os.environ["CUDA_VISIBLE_DEVICES"] = opts.gpu_id
+#torch.cuda.set_device(opts.gpu_id)
 
 # Load experiment setting
 config = utils.get_config(opts.config)

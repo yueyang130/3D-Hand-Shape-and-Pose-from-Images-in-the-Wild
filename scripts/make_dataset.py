@@ -293,11 +293,11 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
     return cnt
 
 def main():
-    train_outpath = "/home/lyf2/dataset/3dhand/dataset/train/image/"
-    test_outpath = "/home/lyf2/dataset/3dhand/dataset/test/image/"
+    train_outpath = "/home/lyf2/dataset/3dhand/dataset1/train/image/"
+    test_outpath = "/home/lyf2/dataset/3dhand/dataset1/test/image/"
 
-    train_newlabel_path = "/home/lyf2/dataset/3dhand/dataset/train/joints.json"
-    test_newlabel_path = "/home/lyf2/dataset/3dhand/dataset/test/joints.json"
+    train_newlabel_path = "/home/lyf2/dataset/3dhand/dataset1/train/joints.json"
+    test_newlabel_path = "/home/lyf2/dataset/3dhand/dataset1/test/joints.json"
 
     # if os.path.isdir(train_outpath):
     #     shutil.rmtree(train_outpath)

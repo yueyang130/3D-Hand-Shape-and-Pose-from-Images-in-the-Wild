@@ -26,15 +26,11 @@ pretrain_loss_fn: L2          # vector reconstruction loss fn [L1/L2]
 
 w_L1_pose: 1000                    # the weight of pose loss
 w_L1_beta: 100000                     # the weight of shape loss
-w_L1_r: 2000                       # the weight of rotation loss
-w_L1_t: 0.5                       # the weight of translation loss
+w_L1_r: 5000                       # the weight of rotation loss
+w_L1_t: 0.2                       # the weight of translation loss
 w_L1_s: 0.1                       # the weight of scale loss
 
-w_L2_pose: 1                    # the weight of pose loss
-w_L2_beta:                      # the weight of shape loss
-w_L2_r: 0                       # the weight of rotation loss
-w_L2_t: 1                       # the weight of translation loss
-w_L2_s: 1                       # the weight of scale loss
+
 
 
 # data options

@@ -13,10 +13,10 @@ test_num: 256                   # How many images do you want to use when showin
 max_iter: 100000             # maximum number of training iterations
 batch_size: 1                # batch size
 weight_decay: 0.01           # weight decay
-beta1: 0.5                    # Adam parameter
+beta1: 0.9                    # Adam parameter
 beta2: 0.999                  # Adam parameter
 init: kaiming                 # initialization [gaussian/kaiming/xavier/orthogonal]
-lr: 0.0001                    # initial learning rate
+lr: 0.00004                    # initial learning rate
 lr_policy: step               # learning rate scheduler
 step_size: 20000             # how often to decay learning rate
 gamma: 0.5                    # how much to decay learning rate
