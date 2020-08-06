@@ -89,6 +89,24 @@ class EncoderTrainer(nn.Module):
 
         return ret
 
+    def compute_3d_joint_loss_norm(self, joint_rec, joint_gt, valid):
+        bs = valid.shape[0]
+        valid_index = torch.arange(bs)[valid == 1]
+        if valid_index.shape[0] == 0 :
+            return torch.tensor(0.).cuda()
+
+        joint_gt_valid = joint_gt[valid_index]
+        joint_rec_valid = joint_rec[valid_index]
+        # convert
+
+        joint_gt_norm = (joint_gt_valid - torch.mean(joint_gt_valid, dim=1, keepdim=True)) / torch.std(joint_gt_valid, dim=1, keepdim=True).detach()
+        joint_rec_norm = (joint_rec_valid - torch.mean(joint_rec_valid, dim=1, keepdim=True)) / torch.std(joint_rec_valid, dim=1, keepdim=True).detach()
+
+        tmp = joint_rec_norm - joint_gt_norm
+        loss1 = torch.mean(tmp ** 2)
+
+        return loss1
+
     def compute_3d_joint_loss(self, joint_rec, joint_gt, valid, scale):
 
         bs = valid.shape[0]
@@ -208,7 +226,8 @@ class EncoderTrainer(nn.Module):
         #show_3dmesh(x3d[0])
 
         self.loss_2d = self.comupte_2d_joint_loss(joint_2d, gt_2d)
-        self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0], scale)
+        #self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0], scale)
+        self.loss_3d = self.compute_3d_joint_loss_norm(joint_3d, gt_3d, valid[:, 0])
         self.loss_mask    = self.compute_mask_loss(mesh_2d, mask, valid[:, 1])
         self.loss_reg     = self.compute_param_reg_loss(param)
 
@@ -234,7 +253,8 @@ class EncoderTrainer(nn.Module):
         joint_2d, mesh_2d = x2d[:, :42], x2d[:, 42 :]
         joint_3d, mesh_3d = x3d[:, :21, :], x3d[:, 21 :, :]
         self.loss_2d = self.comupte_2d_joint_loss(joint_2d, gt_2d)
-        self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0], scale)
+        #self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0], scale)
+        self.loss_3d = self.compute_3d_joint_loss_norm(joint_3d, gt_3d, valid[:, 0])
         self.loss_mask = self.compute_mask_loss(mesh_2d, mask, valid[:, 1])
         self.loss_reg = self.compute_param_reg_loss(param)
 
