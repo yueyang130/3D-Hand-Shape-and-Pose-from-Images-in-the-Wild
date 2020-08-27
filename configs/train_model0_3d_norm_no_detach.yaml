@@ -10,7 +10,7 @@ show_iter: 1000                 # How often do you want to show the test result
 test_num: 256                   # How many images do you want to use when showing the training and testing stats
 
 # optimization options
-max_iter: 100000             # maximum number of training iterations
+max_iter: 150000             # maximum number of training iterations
 batch_size: 16                # batch size
 weight_decay: 0.01           # weight decay
 beta1: 0.9                    # Adam parameter
@@ -20,13 +20,12 @@ lr: 0.0001                    # initial learning rate
 lr_policy: step               # learning rate scheduler
 step_size: 10000             # how often to decay learning rate
 gamma: 0.5                    # how much to decay learning rate
-3d_loss: perspective       # [3d_norm/3d_norm_detach/perspective]: use normalization/perspective to calculate 3d loss
+3d_loss: 3d_norm              # [3d_norm/perspective]: use normalization/perspective to calculate 3d loss
 
 
-
-w_2d: 4                    # the weight of 2d loss
-w_3d:  100000              # the weight of 3d loss
-w_mask: 20                 # the weight of mask loss
+w_2d: 2                   # the weight of 2d loss
+w_3d:  100                # the weight of 3d loss
+w_mask: 1                 # the weight of mask loss
 w_reg:  10                 # the weight of regulization loss
 
 

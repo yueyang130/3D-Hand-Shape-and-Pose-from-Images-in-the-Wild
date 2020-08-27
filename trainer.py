@@ -29,6 +29,7 @@ class EncoderTrainer(nn.Module):
         self.ispretrain = ispretrain
         self.input_option = params['input_option']
         self.weight = params
+
         # initiate the network modules
         #self.model = resnet34_Mano(ispretrain=ispretrain, input_option=params['input_option'])
         self.model = torch.nn.DataParallel(resnet34_Mano(input_option=params['input_option']))
@@ -89,7 +90,7 @@ class EncoderTrainer(nn.Module):
 
         return ret
 
-    def compute_3d_joint_loss_norm(self, joint_rec, joint_gt, valid):
+    def compute_3d_joint_loss_norm(self, joint_rec, joint_gt, valid, detach):
         bs = valid.shape[0]
         valid_index = torch.arange(bs)[valid == 1]
         if valid_index.shape[0] == 0 :
@@ -98,9 +99,16 @@ class EncoderTrainer(nn.Module):
         joint_gt_valid = joint_gt[valid_index]
         joint_rec_valid = joint_rec[valid_index]
         # convert
-
-        joint_gt_norm = (joint_gt_valid - torch.mean(joint_gt_valid, dim=1, keepdim=True)) / torch.std(joint_gt_valid, dim=1, keepdim=True).detach()
-        joint_rec_norm = (joint_rec_valid - torch.mean(joint_rec_valid, dim=1, keepdim=True)) / torch.std(joint_rec_valid, dim=1, keepdim=True).detach()
+        if detach:
+            joint_gt_norm = (joint_gt_valid - torch.mean(joint_gt_valid, dim=1, keepdim=True).detach()) / torch.std(
+                joint_gt_valid, dim=1, keepdim=True).detach()
+            joint_rec_norm = (joint_rec_valid - torch.mean(joint_rec_valid, dim=1, keepdim=True).detach()) / torch.std(
+                joint_rec_valid, dim=1, keepdim=True).detach()
+        else:
+            joint_gt_norm = (joint_gt_valid - torch.mean(joint_gt_valid, dim=1, keepdim=True)) / torch.std(
+                joint_gt_valid, dim=1, keepdim=True)
+            joint_rec_norm = (joint_rec_valid - torch.mean(joint_rec_valid, dim=1, keepdim=True)) / torch.std(
+                joint_rec_valid, dim=1, keepdim=True)
 
         tmp = joint_rec_norm - joint_gt_norm
         loss1 = torch.mean(tmp ** 2)
@@ -226,8 +234,11 @@ class EncoderTrainer(nn.Module):
         #show_3dmesh(x3d[0])
 
         self.loss_2d = self.comupte_2d_joint_loss(joint_2d, gt_2d)
-        #self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0], scale)
-        self.loss_3d = self.compute_3d_joint_loss_norm(joint_3d, gt_3d, valid[:, 0])
+        if '3d_norm' in self.weight.values() or '3d_norm_detach' in self.weight.values():
+            self.loss_3d = self.compute_3d_joint_loss_norm(joint_3d, gt_3d, valid[:, 0],
+                                                           detach='3d_norm_detach' in self.weight.values())
+        else:
+            self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0], scale)
         self.loss_mask    = self.compute_mask_loss(mesh_2d, mask, valid[:, 1])
         self.loss_reg     = self.compute_param_reg_loss(param)
 
@@ -253,8 +264,11 @@ class EncoderTrainer(nn.Module):
         joint_2d, mesh_2d = x2d[:, :42], x2d[:, 42 :]
         joint_3d, mesh_3d = x3d[:, :21, :], x3d[:, 21 :, :]
         self.loss_2d = self.comupte_2d_joint_loss(joint_2d, gt_2d)
-        #self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0], scale)
-        self.loss_3d = self.compute_3d_joint_loss_norm(joint_3d, gt_3d, valid[:, 0])
+        if '3d_norm' in self.weight.values() or '3d_norm_detach' in self.weight.values() :
+            self.loss_3d = self.compute_3d_joint_loss_norm(joint_3d, gt_3d, valid[:, 0],
+                                                           detach='3d_norm_detach' in self.weight.values())
+        else:
+            self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0], scale)
         self.loss_mask = self.compute_mask_loss(mesh_2d, mask, valid[:, 1])
         self.loss_reg = self.compute_param_reg_loss(param)
 

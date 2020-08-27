@@ -75,11 +75,11 @@ def main():
 
 
 def main2():
-    ls = [64000]
+    ls = [91000]
     #ls = [10000,13000,15000,17000,19000,21000,30000,40000,50000,60000,70000]
     for iter in ls:
         input_option = 0
-        model_pth = "/home/lyf2/checkpoints/3dhand/train/train_model_new_adam_param2/checkpoints/model-0_%08d.pth"%iter
+        model_pth = "/home/lyf2/checkpoints/3dhand/train/train_model0_3d_norm_no_detach/checkpoints/model-0_%08d.pth"%iter
         assert os.path.isfile(model_pth)
         model_name = os.path.splitext(os.path.split(model_pth)[1])[0]
         out_pth =  "/home/lyf2/dataset/3dhand/visual_test/test2/" + model_name
