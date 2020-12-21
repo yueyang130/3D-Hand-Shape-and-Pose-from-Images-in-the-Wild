@@ -146,6 +146,6 @@ def main(resume_train=True, resume_index=0):
 
 
 if __name__ == '__main__':
-    main(True, resume_index=30157)
+    main(True, resume_index=0)
 
 

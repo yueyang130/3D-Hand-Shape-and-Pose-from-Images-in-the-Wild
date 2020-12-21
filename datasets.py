@@ -207,13 +207,13 @@ class HandTrainSet(data.Dataset):
 
         joint_2d = np.array(self.anno[index]['2d_joint'])
 
-        # Note: stereo annotation order is inverse to MPII and PANOTIC
-        if '3d_joint' in self.anno[index].keys():
+        # Note:sort stereo, MPII and PANOTIC annotation into MANO order
+        if '3d_joint' in self.anno[index].keys():   # stereo
             joint_3d = np.array(self.anno[index]['3d_joint'])
             joint_2d = self.sort(joint_2d, new_order=[9, 13, 5, 1, 17])
             joint_3d = self.sort(joint_3d, new_order=[9, 13, 5, 1, 17])
             #show_line_on_img(img, joint_2d)
-        else:
+        else: # MPII and PANOTIC
             joint_2d = self.sort(joint_2d, new_order=[17, 1, 5, 13, 9])
             #show_line_on_img(img, joint_2d)
             joint_3d = np.zeros((21,3))

@@ -80,6 +80,7 @@ def main2():
     for iter in ls:
         input_option = 0
         model_pth = "/home/lyf2/checkpoints/3dhand/train/train_model0_3d_norm_no_detach/checkpoints/model-0_%08d.pth"%iter
+        img_pth = "/home/lyf2/dataset/3dhand/visual_test/test2/image/"
         assert os.path.isfile(model_pth)
         model_name = os.path.splitext(os.path.split(model_pth)[1])[0]
         out_pth =  "/home/lyf2/dataset/3dhand/visual_test/test2/" + model_name
@@ -90,7 +91,7 @@ def main2():
         model = resnet34_Mano(input_option=input_option)
         model.load_state_dict(torch.load(model_pth))
         model.cuda()
-        test(input_option, model, out_pth, data_pth="/home/lyf2/dataset/3dhand/visual_test/test2/image/")
+        test(input_option, model, out_pth, data_pth=img_pth)
 
 if __name__ == '__main__':
     main2()

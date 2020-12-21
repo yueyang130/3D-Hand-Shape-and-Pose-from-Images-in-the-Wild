@@ -116,7 +116,9 @@ class EncoderTrainer(nn.Module):
         return loss1
 
     def compute_3d_joint_loss(self, joint_rec, joint_gt, valid, scale):
-
+        """
+            weak perspective model
+        """
         bs = valid.shape[0]
         valid_index = torch.arange(bs)[valid == 1]
         if valid_index.shape[0] == 0:
@@ -177,12 +179,11 @@ class EncoderTrainer(nn.Module):
         bs = mesh2d.shape[0]
 
         mesh2d = self.convert_vec_to_2d(mesh2d)  # [bs, 778, 2]
-        new_mesh2d = mesh2d.unsqueeze(1)
+        new_mesh2d = mesh2d.unsqueeze(1)  # [bs, 1, 778, 2]
 
-        # mesh[0] means width; mesh[1] means height
-        # For grid_sample input, the first coordinate means width; the second means height
-        #new_mesh2d = torch.cat([mesh2d[:,:,:,1:2], mesh2d[:,:,:,0:1]], dim=3)
-
+        # For mesh, mesh[0] means width; mesh[1] means height
+        # For grid_sample's grid parameter , the first coordinate means width; the second means height
+        # so we don't reverse mesh's x and y
 
         # mesh may out of image
         size = mask.shape[1]
@@ -234,9 +235,9 @@ class EncoderTrainer(nn.Module):
         #show_3dmesh(x3d[0])
 
         self.loss_2d = self.comupte_2d_joint_loss(joint_2d, gt_2d)
-        if '3d_norm' in self.weight.values() or '3d_norm_detach' in self.weight.values():
+        if '3d_norm' in self.weight.values() or '3d_norm_no_detach' in self.weight.values():
             self.loss_3d = self.compute_3d_joint_loss_norm(joint_3d, gt_3d, valid[:, 0],
-                                                           detach='3d_norm_detach' in self.weight.values())
+                                                           detach='3d_norm_no_detach' not in self.weight.values())
         else:
             self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0], scale)
         self.loss_mask    = self.compute_mask_loss(mesh_2d, mask, valid[:, 1])
@@ -264,9 +265,9 @@ class EncoderTrainer(nn.Module):
         joint_2d, mesh_2d = x2d[:, :42], x2d[:, 42 :]
         joint_3d, mesh_3d = x3d[:, :21, :], x3d[:, 21 :, :]
         self.loss_2d = self.comupte_2d_joint_loss(joint_2d, gt_2d)
-        if '3d_norm' in self.weight.values() or '3d_norm_detach' in self.weight.values() :
+        if '3d_norm' in self.weight.values() or '3d_norm_no_detach' in self.weight.values() :
             self.loss_3d = self.compute_3d_joint_loss_norm(joint_3d, gt_3d, valid[:, 0],
-                                                           detach='3d_norm_detach' in self.weight.values())
+                                                           detach='3d_norm_no_detach' not in self.weight.values())
         else:
             self.loss_3d = self.compute_3d_joint_loss(joint_3d, gt_3d, valid[:, 0], scale)
         self.loss_mask = self.compute_mask_loss(mesh_2d, mask, valid[:, 1])
