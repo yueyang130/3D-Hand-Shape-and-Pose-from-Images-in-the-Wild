@@ -21,9 +21,9 @@ from prepare_background import get_img_path_list
 # total number of synthetic image
 SYNTHETIC_NUM = 10
 # total number of bg images
-model_pth = '/home/lyf/yy_ws/code/manopth/manopth/mano/models/MANO_RIGHT.pkl'
-bg_pth    = '/home/lyf/yy_ws/code/3dhand/data/backgrounds/'
-output_path = '/home/lyf2/dataset/3dhand/syn/raw/'
+model_pth = '/home/workspace/yy_ws/code/manopth/manopth/mano/models/MANO_RIGHT.pkl'
+bg_pth    = '/home/workspace/yy_ws/code/3dhand/data/backgrounds/'
+output_path = '/home/workspace2/dataset/3dhand/syn/raw/'
 
 if os.path.exists(output_path):
     shutil.rmtree(output_path)
@@ -38,7 +38,7 @@ m = load_model(model_pth, ncomps=6, flat_hand_mean=False)
 # load all colors 
 colors = []
 for i in xrange(0,27):
-    f = open('/home/lyf/yy_ws/code/3dhand/data/meshes_colored/%d.obj'%i)
+    f = open('/home/workspace/yy_ws/code/3dhand/data/meshes_colored/%d.obj'%i)
     cont = f.readlines() 
     f.close() 
 

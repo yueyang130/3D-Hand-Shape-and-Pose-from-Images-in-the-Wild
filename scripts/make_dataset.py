@@ -23,7 +23,7 @@ import matplotlib
 from PIL import Image
 
 def show_pts_on_img(image, pts,
-    img_pth = '/home/lyf2/dataset/3dhand/dataset/pts_on_img.png'):
+    img_pth = '/home/workspace2/dataset/3dhand/dataset/pts_on_img.png'):
 
     if pts.shape[1] == 3:
         kps = [Keypoint(x, y) for x,y,_ in pts]
@@ -31,12 +31,12 @@ def show_pts_on_img(image, pts,
         kps = [Keypoint(x, y) for x,y in pts]
 
     kpsoi = KeypointsOnImage(kps, shape=image.shape)
-    misc.imsave('/home/lyf2/dataset/3dhand/dataset/img.png', image)
+    misc.imsave('/home/workspace2/dataset/3dhand/dataset/img.png', image)
     misc.imsave(img_pth, kpsoi.draw_on_image(image, size = 7))
 
 
 def show_line_on_img(image, pts,
-    img_pth = '/home/lyf2/dataset/3dhand/dataset/pts_on_img.png'):
+    img_pth = '/home/workspace2/dataset/3dhand/dataset/pts_on_img.png'):
     edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [0, 9], [9, 10], [10, 11], [11, 12],
              [0, 13],
              [13, 14], [14, 15], [15, 16], [0, 17], [17, 18], [18, 19], [19, 20]]
@@ -54,7 +54,7 @@ def show_line_on_img(image, pts,
     plt.close()
 
 
-def show_3dmesh(x3d ,out_path = '/home/lyf2/dataset/3dhand/dataset/3d.obj'):
+def show_3dmesh(x3d ,out_path = '/home/workspace2/dataset/3dhand/dataset/3d.obj'):
     assert x3d.shape == (799, 3)
     template = open('data/template.obj')
     content = template.readlines()
@@ -77,7 +77,7 @@ def crop(image, pts, pts_3d = None):
     vs, ve, us, ue = get_crop_pos(image, pts)
     cropped_image = image[vs : ve + 1, us : ue + 1, :]
 
-    #img_pth = '/home/lyf2/dataset/3dhand/dataset/cropped_img.png'
+    #img_pth = '/home/workspace2/dataset/3dhand/dataset/cropped_img.png'
     #misc.imsave(img_pth, cropped_image)
 
     # In fact, pt[0] means width axis, and pt[1] means height axis
@@ -126,8 +126,8 @@ def process_PANOPTIC(outpath, infor_dict, cnt, num = float('inf')):
     The panoptic dataset only contains labels of right hand.
     And it has a intergrated label with the extension name of 'json'.
     """
-    root = "/home/lyf2/dataset/3dhand/panoptic/hand143_panopticdb/"
-    label_pth = "/home/lyf2/dataset/3dhand/panoptic/hand143_panopticdb/hands_v143_14817.json"
+    root = "/home/workspace2/dataset/3dhand/panoptic/hand143_panopticdb/"
+    label_pth = "/home/workspace2/dataset/3dhand/panoptic/hand143_panopticdb/hands_v143_14817.json"
 
     with open(label_pth, 'r') as fo:
         dat_all = json.load(fo)['root']
@@ -159,7 +159,7 @@ def process_MPII(outpath, infor_dict, cnt, num = float('inf'), trainset = True):
         The MPII dataset also contains left hands, which should be flipped to right one.
         And it has (per image) a label with the extension name of 'json'.
     """
-    root = '/home/lyf2/dataset/3dhand/MPII/' + ('manual_train/' if trainset else 'manual_test/')
+    root = '/home/workspace2/dataset/3dhand/MPII/' + ('manual_train/' if trainset else 'manual_test/')
     json_list = get_file_list(root, key='.json')
     for ii, json_pth in enumerate(json_list):
         if ii >= num : break
@@ -203,7 +203,7 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
         ]
     num = num // (2*len(sequences))
 
-    root = '/home/lyf2/dataset/3dhand/stereo/'
+    root = '/home/workspace2/dataset/3dhand/stereo/'
     myJTransfomer = JointTransfomer('BB')
 
     for seq in sequences:
@@ -246,17 +246,17 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
             if os.path.exists(img_pth_l):
                 try:
                     img_l = misc.imread(img_pth_l)
-                    #show_pts_on_img(img_l, anno_uv_l, '/home/lyf2/dataset/3dhand/dataset/pts_on_img1.png')
+                    #show_pts_on_img(img_l, anno_uv_l, '/home/workspace2/dataset/3dhand/dataset/pts_on_img1.png')
 
                     img_l, anno_uv_l = flip(img_l, anno_uv_l)
                     new_img_l, new_anno_uv_l, new_anno_xyz = crop(img_l, anno_uv_l, flipped_anno_xyz)
-                    #show_pts_on_img(new_img_l, new_anno_uv_l, '/home/lyf2/dataset/3dhand/dataset/pts_on_img2.png')
+                    #show_pts_on_img(new_img_l, new_anno_uv_l, '/home/workspace2/dataset/3dhand/dataset/pts_on_img2.png')
                     #show_line_on_img(new_img_l, new_anno_uv_l)
 
                     # test
                     #acco_anno_uv_l, _ = myJTransfomer.transfrom3d_to_2d(np.transpose(new_anno_xyz))
                     #acco_anno_uv_l = np.transpose(acco_anno_uv_l)
-                    #show_pts_on_img(new_img_l, acco_anno_uv_l, '/home/lyf2/dataset/3dhand/dataset/pts_on_img3.png')
+                    #show_pts_on_img(new_img_l, acco_anno_uv_l, '/home/workspace2/dataset/3dhand/dataset/pts_on_img3.png')
 
 
                     img_pth = outpath + '%08d.png' % cnt
@@ -270,17 +270,17 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
             if os.path.exists(img_pth_r):
                 try:
                     img_r = misc.imread(img_pth_r)
-                    #show_pts_on_img(img_r, anno_uv_r, '/home/lyf2/dataset/3dhand/dataset/pts_on_img1.png')
+                    #show_pts_on_img(img_r, anno_uv_r, '/home/workspace2/dataset/3dhand/dataset/pts_on_img1.png')
                     # flip
                     img_r, anno_uv_r = flip(img_r, anno_uv_r)
                     # crop and resize
                     new_img_r, new_anno_uv_r, new_anno_xyz = crop(img_r, anno_uv_r, flipped_anno_xyz)
-                    #show_pts_on_img(new_img_r, new_anno_uv_r, '/home/lyf2/dataset/3dhand/dataset/pts_on_img2.png')
+                    #show_pts_on_img(new_img_r, new_anno_uv_r, '/home/workspace2/dataset/3dhand/dataset/pts_on_img2.png')
 
                     # test
                     # _, acco_anno_uv_r = myJTransfomer.transfrom3d_to_2d(np.transpose(new_anno_xyz))
                     # acco_anno_uv_r = np.transpose(acco_anno_uv_r)
-                    # show_pts_on_img(new_img_r, acco_anno_uv_r, '/home/lyf2/dataset/3dhand/dataset/pts_on_img3.png')
+                    # show_pts_on_img(new_img_r, acco_anno_uv_r, '/home/workspace2/dataset/3dhand/dataset/pts_on_img3.png')
 
                     img_pth = outpath + '%08d.png' % cnt
                     misc.imsave(img_pth, new_img_r)
@@ -293,11 +293,11 @@ def process_stereo(outpath, infor_dict, cnt, num = float('inf')):
     return cnt
 
 def main():
-    train_outpath = "/home/lyf2/dataset/3dhand/dataset1/train/image/"
-    test_outpath = "/home/lyf2/dataset/3dhand/dataset1/test/image/"
+    train_outpath = "/home/workspace2/dataset/3dhand/dataset1/train/image/"
+    test_outpath = "/home/workspace2/dataset/3dhand/dataset1/test/image/"
 
-    train_newlabel_path = "/home/lyf2/dataset/3dhand/dataset1/train/joints.json"
-    test_newlabel_path = "/home/lyf2/dataset/3dhand/dataset1/test/joints.json"
+    train_newlabel_path = "/home/workspace2/dataset/3dhand/dataset1/train/joints.json"
+    test_newlabel_path = "/home/workspace2/dataset/3dhand/dataset1/test/joints.json"
 
     # if os.path.isdir(train_outpath):
     #     shutil.rmtree(train_outpath)

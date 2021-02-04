@@ -2,8 +2,8 @@ import os
 import cv2
 import shutil
 
-rawdirpath = "/home/lyf/yy_ws/code/3dhand/data/raw_backgrounds/iccv09Data/images/"
-dstImgPth = '/home/lyf/yy_ws/code/3dhand/data/backgrounds/'
+rawdirpath = "/home/workspace/yy_ws/code/3dhand/data/raw_backgrounds/iccv09Data/images/"
+dstImgPth = '/home/workspace/yy_ws/code/3dhand/data/backgrounds/'
 
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',

@@ -3,8 +3,8 @@ import shutil
 import pickle
 from prepare_background import get_img_path_list
 
-img_dir = '/home/lyf2/dataset/3dhand/syn/raw'
-gt_pth = '/home/lyf2/dataset/3dhand/syn/raw/gt.pickle'
+img_dir = '/home/workspace2/dataset/3dhand/syn/raw'
+gt_pth = '/home/workspace2/dataset/3dhand/syn/raw/gt.pickle'
 
 n_image = len(get_img_path_list(img_dir))
 print('total number of iamges is %d'%n_image)

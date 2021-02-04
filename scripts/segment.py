@@ -9,7 +9,7 @@ import utils
 import os
 
 def show_mask_on_img(img, mask,
-    img_pth = '/home/lyf2/dataset/3dhand/dataset/mask_on_img.png'):
+    img_pth = '/home/workspace2/dataset/3dhand/dataset/mask_on_img.png'):
     mask = np.expand_dims(mask, 2)
     blue_mask = np.concatenate([np.zeros_like(mask),
                                         np.zeros_like(mask), mask], axis=2)
@@ -113,7 +113,7 @@ def main2():
 
 
 def main(resume_train=True, resume_index=0):
-    root = '/home/lyf2/dataset/3dhand/dataset1/'
+    root = '/home/workspace2/dataset/3dhand/dataset1/'
     sel = ['train','test']
     label_pths = [root + x + '/joints.json' for x in sel]  # 2D joint annotation location
     img_dirs = [root + x +'/' for x in sel]   # input image dir, please end with /

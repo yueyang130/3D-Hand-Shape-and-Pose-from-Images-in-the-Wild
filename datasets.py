@@ -85,7 +85,7 @@ class HandPretrainSet(data.Dataset) :
         resized_img[resized_img < 0] = 0
 
         # test
-        # img_pth = '/home/lyf2/dataset/3dhand/dataset/img.png'
+        # img_pth = '/home/workspace2/dataset/3dhand/dataset/img.png'
         # scipy.misc.imsave(img_pth, resized_img)
 
         return resized_img, resized_vec

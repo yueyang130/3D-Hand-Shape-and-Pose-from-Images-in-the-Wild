@@ -228,9 +228,9 @@ class EncoderTrainer(nn.Module):
         trans = param[:, 1:3]
         #test
         #img = np.transpose(x[0].cpu().numpy()*255, axes=(1,2,0))
-        # show_line_on_img(img, gt_2d[0].cpu().numpy(), '/home/lyf2/dataset/3dhand/dataset/pts_on_img4.png')
-        # show_pts_on_img(img, self.convert_vec_to_2d(x2d)[0].detach().cpu().numpy(), '/home/lyf2/dataset/3dhand/dataset/mesh_on_img5.png')
-        # show_line_on_img(img, self.convert_vec_to_2d(joint_2d)[0].detach().cpu().numpy(), '/home/lyf2/dataset/3dhand/dataset/pts_on_img5.png')
+        # show_line_on_img(img, gt_2d[0].cpu().numpy(), '/home/workspace2/dataset/3dhand/dataset/pts_on_img4.png')
+        # show_pts_on_img(img, self.convert_vec_to_2d(x2d)[0].detach().cpu().numpy(), '/home/workspace2/dataset/3dhand/dataset/mesh_on_img5.png')
+        # show_line_on_img(img, self.convert_vec_to_2d(joint_2d)[0].detach().cpu().numpy(), '/home/workspace2/dataset/3dhand/dataset/pts_on_img5.png')
         # show_mask_on_img(img, mask[0].detach().cpu().numpy())
         #show_3dmesh(x3d[0])
 

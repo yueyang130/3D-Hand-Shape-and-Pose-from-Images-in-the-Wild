@@ -32,5 +32,5 @@ w_reg:  10                 # the weight of regulization loss
 # data options
 num_workers: 0                              # number of data loading threads
 new_size: 256                               # first resize the shortest image side to this size
-data_root:  /home/lyf2/dataset/3dhand/dataset1            # dataset folder location
-output_pth: /home/lyf2/checkpoints/3dhand/train          # output path
+data_root:  /home/workspace2/dataset/3dhand/dataset1            # dataset folder location
+output_pth: /home/workspace2/checkpoints/3dhand/train          # output path

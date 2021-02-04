@@ -105,13 +105,13 @@ def get_crop_pos(image, pts):
 #############################################################
 ### set path and mode
 def main():
-    img_dir = '/home/lyf2/dataset/3dhand/syn/raw'
+    img_dir = '/home/workspace2/dataset/3dhand/syn/raw'
     img_ext = '.png'
-    crop_dir = '/home/lyf2/dataset/3dhand/syn/crop'
+    crop_dir = '/home/workspace2/dataset/3dhand/syn/crop'
     label_mode = 0 # In mode 1, every image has a single label file
                    # In mode 0, all iamges have a common label file
     label_ext = '.pickle'  # label file extension [.json/.mat/.pickle...]
-    label_pth = '/home/lyf2/dataset/3dhand/syn/raw/labels.pickle'  # In mode 1, label_pth is a directory; In mode 0, it is a file.
+    label_pth = '/home/workspace2/dataset/3dhand/syn/raw/labels.pickle'  # In mode 1, label_pth is a directory; In mode 0, it is a file.
     joint_keyname = 'hand_pts'   # the key's name of joint in label file
 
 

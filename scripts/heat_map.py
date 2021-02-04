@@ -5,8 +5,8 @@ import PyOpenPose as OP
 import cv2
 from prepare_background import get_img_path_list
 
-src_pth = '/home/lyf2/dataset/3dhand/syn/'
-dst_pth = '/home/lyf2/dataset/3dhand/syn/'
+src_pth = '/home/workspace2/dataset/3dhand/syn/'
+dst_pth = '/home/workspace2/dataset/3dhand/syn/'
 
 OPENPOSE_ROOT = os.environ["OPENPOSE_ROOT"]
 ll = [[0,5,6],[7,8,9],[10,11,12],[17,18,19],[20,13,14],[15,16,1],[2,3,4]]

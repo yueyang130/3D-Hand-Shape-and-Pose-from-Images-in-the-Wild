@@ -71,7 +71,7 @@ def main():
     mdict = torch.load('data/model-' + str(input_option) + '-module.pth')
     model.load_state_dict(mdict)
 
-    test(input_option, model, out_path="/home/lyf2/dataset/3dhand/visual_test/test2/out_author/", data_pth="/home/lyf2/dataset/3dhand/visual_test/test2/image/")
+    test(input_option, model, out_path="/home/workspace2/dataset/3dhand/visual_test/test2/out_author/", data_pth="/home/workspace2/dataset/3dhand/visual_test/test2/image/")
 
 
 def main2():
@@ -79,11 +79,11 @@ def main2():
     #ls = [10000,13000,15000,17000,19000,21000,30000,40000,50000,60000,70000]
     for iter in ls:
         input_option = 0
-        model_pth = "/home/lyf2/checkpoints/3dhand/train/train_model0_3d_norm_no_detach/checkpoints/model-0_%08d.pth"%iter
-        img_pth = "/home/lyf2/dataset/3dhand/visual_test/test2/image/"
+        model_pth = "/home/workspace2/checkpoints/3dhand/train/train_model0_3d_norm_no_detach/checkpoints/model-0_%08d.pth"%iter
+        img_pth = "/home/workspace2/dataset/3dhand/visual_test/test2/image/"
         assert os.path.isfile(model_pth)
         model_name = os.path.splitext(os.path.split(model_pth)[1])[0]
-        out_pth =  "/home/lyf2/dataset/3dhand/visual_test/test2/" + model_name
+        out_pth =  "/home/workspace2/dataset/3dhand/visual_test/test2/" + model_name
         if not os.path.exists(out_pth):
             os.makedirs(out_pth)
 
