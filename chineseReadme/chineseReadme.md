@@ -230,7 +230,5 @@ Author:乐洋
 
 contact me：
 
-​	微信： Salvatore_DV
-
 ​    Email: yuey23@buaa.edu.cn
 
