@@ -185,7 +185,3 @@ python2 scripts/heat_map.py
 
 Author: Yue Yang
 
-contact me：
-
-​    Email: yuey23@buaa.edu.cn
-
